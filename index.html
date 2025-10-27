@@ -116,26 +116,206 @@ button:disabled {
 <script>
 // --- Datos y variables ---
 const preguntas = [
-  {texto:"¿Cuál es el principal objetivo de los sistemas de recogida de residuos municipales?", opciones:["Incrementar la producción industrial","Reducir el impacto ambiental y mejorar la calidad de vida","Aumentar la cantidad de residuos generados"], correcta:1},
-  {texto:"¿Qué tipo de recogida consiste en retirar los residuos directamente desde los domicilios?", opciones:["Recogida en contenedores","Recogida puerta a puerta","Recogida en puntos limpios"], correcta:1},
-  {texto:"¿Cuál de los siguientes no es un tipo de residuo recogido habitualmente?", opciones:["Residuos voluminosos","Residuos de jardín","Residuos gaseosos atmosféricos"], correcta:2},
-  {texto:"¿Qué aspecto es fundamental en la planificación de la recogida de residuos?", opciones:["El color de los uniformes","Las rutas y horarios de los vehículos","La decoración de los contenedores"], correcta:1},
-  {texto:"¿Por qué es importante la limpieza de contenedores?", opciones:["Para mejorar su aspecto estético","Para mantener la higiene y evitar plagas","Para reducir el peso del contenedor"], correcta:1},
-  {texto:"¿Cuál de los siguientes sistemas permite depositar residuos peligrosos y voluminosos?", opciones:["Puntos limpios","Recogida selectiva en contenedores","Vertedero controlado"], correcta:0},
-  {texto:"¿Qué medida contribuye a la eficiencia en el uso de contenedores?", opciones:["Dejar los contenedores abiertos","Respetar la capacidad y horarios de recogida","Mezclar residuos reciclables y orgánicos"], correcta:1},
-  {texto:"¿Qué herramienta permite optimizar las rutas de recogida?", opciones:["Software de planificación y monitoreo","Planos en papel sin actualización","Avisos por megafonía"], correcta:0},
-  {texto:"¿Qué tipo de vehículo utiliza un sistema de piso móvil?", opciones:["Camión cisterna","Vehículo para residuos voluminosos","Recolector de carga lateral"], correcta:1},
-  {texto:"¿Qué función tienen las estaciones de transferencia?", opciones:["Almacenar residuos de forma temporal y optimizar el transporte","Quemar residuos peligrosos","Vender materiales reciclables directamente"], correcta:0},
-  {texto:"¿Qué tipo de punto limpio tiene mayor movilidad?", opciones:["Fijo","Móvil","Específico"], correcta:1},
-  {texto:"¿Qué se recoge puerta a puerta en el pequeño comercio?", opciones:["Papel y cartón","Residuos electrónicos","Vidrio y metales"], correcta:0},
-  {texto:"¿Qué proceso transforma los residuos orgánicos en compost?", opciones:["Incineración","Compostaje","Gasificación"], correcta:1},
-  {texto:"¿Cuál de los siguientes métodos genera biogás?", opciones:["Digestión anaeróbica","Tratamiento químico","Reciclaje mecánico"], correcta:0},
-  {texto:"¿Qué característica define un vertedero controlado?", opciones:["Ausencia de control ambiental","Disposición final segura y monitoreada","Acumulación libre de residuos"], correcta:1},
-  {texto:"¿Qué tipo de planta combina procesos mecánicos y biológicos?", opciones:["Planta TMB","Planta de compostaje","Planta de gasificación"], correcta:0},
-  {texto:"¿Qué rol tiene el peón de recogida municipal?", opciones:["Supervisar proyectos técnicos","Recolectar residuos y mantener limpieza","Diseñar campañas publicitarias"], correcta:1},
-  {texto:"¿Cuál es la principal tarea del operario de puntos limpios?", opciones:["Clasificar y almacenar residuos recibidos","Conducir camiones de recogida","Supervisar vertederos"], correcta:0},
-  {texto:"¿Qué objetivo tienen las campañas de concienciación ciudadana?", opciones:["Reducir el personal de limpieza","Fomentar la separación y el reciclaje","Aumentar el consumo"], correcta:1},
-  {texto:"¿Qué se busca con la mejora continua en la recogida de residuos?", opciones:["Mantener los mismos resultados","Identificar y aplicar mejoras en el servicio","Evitar auditorías y evaluaciones"], correcta:1}
+  {
+    texto: "¿Qué son los residuos de construcción y demolición (RCD)?",
+    opciones: [
+      "Residuos orgánicos generados por industrias alimentarias",
+      "Materiales generados en actividades de construcción, reforma o demolición.",
+      "Desechos domésticos recogidos por el municipio.",
+      "Residuos agrícolas provenientes de la ganadería."
+    ],
+    correcta: 1
+  },
+  {
+    texto: "¿Cuál de los siguientes materiales se considera un residuo inerte?",
+    opciones: [
+      "Pinturas con disolventes.",
+      "Ladrillos y tejas.",
+      "Aceites usados.",
+      "Plásticos."
+    ],
+    correcta: 1
+  },
+  {
+    texto: "¿Qué ley regula la gestión de residuos en España y promueve la economía circular?",
+    opciones: [
+      "Ley 10/1998.",
+      "Real Decreto 105/2008.",
+      "Ley 7/2022, de 8 de abril.",
+      "Real Decreto 180/2015."
+    ],
+    correcta: 2
+  },
+  {
+    texto: "¿Qué función tienen las estaciones de transferencia de RCD?",
+    opciones: [
+      "Producir nuevos materiales reciclados.",
+      "Almacenar los residuos de forma definitiva.",
+      "Servir como punto intermedio antes del transporte a plantas.",
+      "Eliminar los residuos mediante incineración."
+    ],
+    correcta: 2
+  },
+  {
+    texto: "En una planta de reciclaje, la criba se utiliza para:",
+    opciones: [
+      "Separar materiales por granulometría.",
+      "Fundir metales.",
+      "Lavar residuos peligrosos.",
+      "Clasificar materiales radiactivos."
+    ],
+    correcta: 0
+  },
+  {
+    texto: "¿Cuál de las siguientes NO es una característica de los residuos peligrosos?",
+    opciones: [
+      "Inflamabilidad.",
+      "Reactividad.",
+      "Reciclabilidad.",
+      "Toxicidad."
+    ],
+    correcta: 2
+  },
+  {
+    texto: "¿Qué residuo se considera ecotóxico?",
+    opciones: [
+      "Ladrillos.",
+      "Amianto.",
+      "Plaguicidas.",
+      "Madera tratada."
+    ],
+    correcta: 2
+  },
+  {
+    texto: "¿Cuál de las siguientes es una forma de tratamiento de los RCD?",
+    opciones: [
+      "Compostaje.",
+      "Combustión nuclear.",
+      "Oxidación térmica.",
+      "Electrólisis química."
+    ],
+    correcta: 2
+  },
+  {
+    texto: "¿Qué tipo de residuos requiere manipulación especial por su capacidad de emitir radiaciones ionizantes?",
+    opciones: [
+      "Inflamables.",
+      "Corrosivos.",
+      "Radiactivos.",
+      "Explosivos."
+    ],
+    correcta: 2
+  },
+  {
+    texto: "¿Cuál de las siguientes tareas corresponde a un operario en una planta de RCD?",
+    opciones: [
+      "Redacción de informes legales.",
+      "Clasificación manual de materiales.",
+      "Diseño de infraestructuras urbanas.",
+      "Elaboración de normativa técnica."
+    ],
+    correcta: 1
+  },
+  {
+    texto: "¿Qué significa que un residuo sea reactivo?",
+    opciones: [
+      "Que puede arder fácilmente.",
+      "Que puede reaccionar violentamente y producir gases o explosiones.",
+      "Que puede corroer metales.",
+      "Que es tóxico para las personas."
+    ],
+    correcta: 1
+  },
+  {
+    texto: "¿Cuál es el objetivo principal de la descontaminación de residuos peligrosos?",
+    opciones: [
+      "Aumentar el volumen de los residuos.",
+      "Eliminar o reducir las sustancias peligrosas para proteger la salud y el medio ambiente.",
+      "Transformar los residuos en productos comerciales.",
+      "Almacenar los residuos sin tratarlos."
+    ],
+    correcta: 1
+  },
+  {
+    texto: "¿Qué tipo de tratamiento utiliza reacciones químicas para neutralizar o eliminar contaminantes?",
+    opciones: [
+      "Tratamiento físico.",
+      "Tratamiento químico.",
+      "Tratamiento biológico.",
+      "Tratamiento térmico."
+    ],
+    correcta: 1
+  },
+  {
+    texto: "¿Qué factores deben considerarse al elegir un método de descontaminación?",
+    opciones: [
+      "Solo la rapidez del proceso.",
+      "La eficiencia, seguridad, sostenibilidad, economía y la normativa aplicable.",
+      "El color y olor del residuo.",
+      "El tamaño del almacenamiento."
+    ],
+    correcta: 1
+  },
+  {
+    texto: "¿Qué significa el principio 'quien contamina paga'?",
+    opciones: [
+      "Que el Estado asume todos los costes de limpieza y gestión de residuos.",
+      "Que las personas o empresas que generan contaminación deben asumir los costes de su prevención y reparación.",
+      "Que los ciudadanos no tienen responsabilidad en la gestión ambiental.",
+      "Que se permite contaminar si se paga una tasa fija."
+    ],
+    correcta: 1
+  },
+  {
+    texto: "¿Qué se busca con la caracterización de los residuos industriales?",
+    opciones: [
+      "Determinar su color y tamaño.",
+      "Conocer su composición, origen y peligrosidad para gestionarlos correctamente.",
+      "Clasificarlos solo por su cantidad.",
+      "Separarlos según el tipo de empresa que los genera."
+    ],
+    correcta: 1
+  },
+  {
+    texto: "¿Qué busca el ecodiseño de productos?",
+    opciones: [
+      "Aumentar los residuos generados durante la producción.",
+      "Diseñar productos más atractivos sin importar su impacto ambiental.",
+      "Reducir el impacto ambiental del producto durante todo su ciclo de vida.",
+      "Usar materiales más caros para mejorar la calidad."
+    ],
+    correcta: 2
+  },
+  {
+    texto: "¿Cuál es una función principal de las plantas de reciclaje de RCD?",
+    opciones: [
+      "Almacenar los residuos sin tratamiento.",
+      "Transformar los residuos en nuevos materiales o productos reutilizables.",
+      "Enterrar los residuos en vertederos controlados.",
+      "Incinerar los residuos sin aprovechamiento energético."
+    ],
+    correcta: 1
+  },
+  {
+    texto: "¿Qué tipo de residuo puede considerarse peligroso en el ámbito de la construcción y demolición?",
+    opciones: [
+      "Ladrillos.",
+      "Hormigón.",
+      "Amianto.",
+      "Vidrio."
+    ],
+    correcta: 2
+  },
+  {
+    texto: "¿Qué objetivo tiene la valorización de los residuos de construcción y demolición (RCD)?",
+    opciones: [
+      "Reducir la calidad de los materiales reciclados.",
+      "Obtener nuevos productos o materiales a partir de los residuos.",
+      "Eliminar completamente los residuos sin aprovecharlos.",
+      "Aumentar el volumen de residuos generados."
+    ],
+    correcta: 1
+  }
 ];
 
 let indice=0, dinero=0, modo=1, preguntasJuego=[], tiempoRestante=30, timer;
