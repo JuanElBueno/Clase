@@ -354,6 +354,7 @@ function mostrarMensaje(texto,color="gold"){
 function actualizarMarcador(){
   const moneda = poderes[2] ? "€" : "₧";
   marcador.textContent = `Dinero: ${dinero} ${moneda}`;
+  localStorage.setItem("dinero", dinero); // <-- guardamos siempre
 }
 
 function actualizarBanco(){
