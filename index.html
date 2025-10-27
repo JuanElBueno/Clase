@@ -371,6 +371,13 @@ function abrirBanco(){menu.style.display="none"; bancoDiv.style.display="block";
 function cerrarBanco(){bancoDiv.style.display="none"; menu.style.display="block";}
 function comprarModo(num, precio, event){
   const boton = event.currentTarget;
+
+  // Aplicar IVA solo al modo 2 restando 21%
+  if(num===2){
+    const IVA = 0.21;
+    precio = Math.round(precio * (1 - IVA));
+  }
+
   if(saldo<precio) return mostrarMensaje("No tienes suficiente dinero","red");
   saldo -= precio;
   poderes[num]=true;
