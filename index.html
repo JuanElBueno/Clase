@@ -350,6 +350,19 @@ function mostrarMensaje(texto,color="gold"){
   setTimeout(()=>msg.remove(),2000);
 }
 
+function actualizarBotonesBanco() {
+  const botones = bancoDiv.querySelectorAll("button");
+  botones.forEach((btn, index) => {
+    // los botones de compra son del 1 al 5, y usamos el índice del poder
+    const numModo = index + 1;
+    if (poderes[numModo]) {
+      btn.disabled = true; // desactiva si ya lo compraste
+    } else {
+      btn.disabled = false;
+    }
+  });
+}
+
 function actualizarMarcador(){
   const moneda = poderes[2] ? "€" : "₧";
   marcador.textContent = `Dinero: ${dinero} ${moneda}`;
@@ -367,7 +380,14 @@ function actualizarBanco(){
 }
 
 // --- Banco ---
-function abrirBanco(){menu.style.display="none"; bancoDiv.style.display="block"; actualizarBanco();}
+// Al abrir el banco
+function abrirBanco() {
+  menu.style.display = "none"; 
+  bancoDiv.style.display = "block"; 
+  actualizarBanco();
+  actualizarBotonesBanco(); // ✅ desactiva botones comprados
+}
+
 function cerrarBanco(){bancoDiv.style.display="none"; menu.style.display="block";}
 function comprarModo(num, precio, event){
   const boton = event.currentTarget;
@@ -502,6 +522,13 @@ document.addEventListener("keydown",(e)=>{
     }
   }
 });
+
+window.addEventListener("load", () => {
+  actualizarBotonesBanco(); // desactiva los botones de modos ya comprados
+  actualizarMarcador();      // muestra el dinero correcto
+  actualizarBanco();         // actualiza el saldo en el banco
+});
+
 </script>
 </body>
 </html>
