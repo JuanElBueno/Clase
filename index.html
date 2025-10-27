@@ -318,15 +318,14 @@ const preguntas = [
   }
 ];
 
-let indice=0, dinero=0, modo=1, preguntasJuego=[], tiempoRestante=30, timer;
+let indice = 0,
+    dinero = parseInt(localStorage.getItem("pesetas")) || 0,
+    saldo = dinero,          // saldo siempre igual a dinero al inicio
+    modo = 1,
+    preguntasJuego = [],
+    tiempoRestante = 30,
+    timer;
 let poderes = JSON.parse(localStorage.getItem("poderes")) || {};
-let saldo = parseInt(localStorage.getItem("pesetas")) || 0;
-
-// Restaurar dinero extra de tecla D si existe
-if(localStorage.getItem("teclaD")) {
-  dinero = parseInt(localStorage.getItem("teclaD"));
-  saldo = dinero;
-}
 
 // --- Elementos DOM ---
 const menu = document.getElementById("menu");
