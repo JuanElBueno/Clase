@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Error 404 - Página no encontrada</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: radial-gradient(circle at center, #002f4b, #000);
+  color: white;
+  text-align: center;
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.contenedor {
+  width: 90%;
+  max-width: 600px;
+  background: rgba(0,0,0,0.85);
+  border: 3px solid gold;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 0 20px gold;
+}
+h1 {
+  color: gold;
+  font-size: 2.5em;
+  margin-bottom: 10px;
+}
+p {
+  font-size: 18px;
+  color: #ccc;
+  margin-bottom: 20px;
+}
+button {
+  background: gold;
+  color: black;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-top: 10px;
+  transition: 0.3s;
+}
+button:hover {
+  background: #ffeb3b;
+}
+footer {
+  color: gold;
+  font-size: 14px;
+  margin-top: 20px;
+  text-shadow: 0 0 5px gold;
+}
+@keyframes parpadeo {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.icono {
+  font-size: 80px;
+  color: gold;
+  animation: parpadeo 1.5s infinite;
+}
+</style>
+</head>
+<body>
+
+<div class="contenedor">
+  <div class="icono">💸</div>
+  <h1>Error 404</h1>
+  <p>¡Vaya! Parece que esta página no existe o se ha perdido entre las pesetas 💰</p>
+  <button onclick="volverInicio()">⬅️ Volver al inicio</button>
+</div>
+
+<footer>© 2025 | Juego educativo hecho por Juan El Bueno</footer>
+
+<script>
+function volverInicio() {
+  window.location.href = "index.html"; // cambia si tu archivo principal tiene otro nombre
+}
+</script>
+
+</body>
+</html>
