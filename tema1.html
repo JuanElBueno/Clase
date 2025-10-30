@@ -3,86 +3,522 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Error 404 - Página no encontrada</title>
+<title>¿Quién quiere ser millonario? - Pesetas/Euros</title>
 <style>
 body {
   font-family: Arial, sans-serif;
   background: radial-gradient(circle at center, #002f4b, #000);
   color: white;
   text-align: center;
-  margin: 0;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  margin:0;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
 }
 .contenedor {
-  width: 90%;
-  max-width: 600px;
+  width:90%;
+  max-width:1020px;
   background: rgba(0,0,0,0.85);
   border: 3px solid gold;
-  border-radius: 20px;
-  padding: 40px;
-  box-shadow: 0 0 20px gold;
+  border-radius:20px;
+  padding:30px;
+  box-shadow:0 0 20px gold;
 }
-h1 {
-  color: gold;
-  font-size: 2.5em;
-  margin-bottom: 10px;
-}
-p {
-  font-size: 18px;
-  color: #ccc;
-  margin-bottom: 20px;
-}
+h1 { color:gold; margin-bottom:15px; }
 button {
   background: gold;
   color: black;
-  border: none;
-  padding: 12px 25px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: bold;
-  margin-top: 10px;
-  transition: 0.3s;
+  border:none;
+  padding:12px 25px;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:bold;
+  margin:5px;
 }
-button:hover {
-  background: #ffeb3b;
+button:disabled {
+  opacity:0.5;
+  cursor:not-allowed;
+}
+.pregunta { font-size:20px; margin:20px 0; }
+.opcion {
+  background:#0a3069;
+  margin:8px auto;
+  padding:10px;
+  border-radius:10px;
+  width:80%;
+  cursor:pointer;
+  transition:0.3s;
+}
+.opcion:hover { background:#123d85; }
+.correcta { background:#2e7d32 !important; }
+.incorrecta { background:#b71c1c !important; }
+#marcador { font-size:18px; color: lightgreen; margin-bottom:10px; }
+#tiempo { font-size:18px; color: yellow; margin-bottom:10px; }
+@keyframes mensajeAnim {
+  0% { opacity: 0; transform: translateX(-50%) translateY(0); }
+  10% { opacity: 1; transform: translateX(-50%) translateY(-10px); }
+  90% { opacity: 1; transform: translateX(-50%) translateY(-10px); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-30px); }
+}
+.mensaje {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.8);
+  color: gold;
+  padding: 10px 20px;
+  border: 2px solid gold;
+  border-radius: 10px;
+  z-index: 9999;
+  font-weight: bold;
+  animation: mensajeAnim 2s forwards;
 }
 footer {
   color: gold;
   font-size: 14px;
-  margin-top: 20px;
+  margin-top: 15px;
   text-shadow: 0 0 5px gold;
-}
-@keyframes parpadeo {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
-}
-.icono {
-  font-size: 80px;
-  color: gold;
-  animation: parpadeo 1.5s infinite;
 }
 </style>
 </head>
 <body>
 
 <div class="contenedor">
-  <div class="icono">💸</div>
-  <h1>Error 404</h1>
-  <p>¡Vaya! Parece que esta página no existe o se ha perdido entre las pesetas 💰</p>
-  <button onclick="volverInicio()">⬅️ Volver al inicio</button>
+  <h1>¿Quién quiere ser millonario? 💰 Para Estudiar</h1>
+
+  <div id="menu">
+    <p>Elige un modo de juego:</p>
+    <button onclick="iniciarJuego(1)">🎲 Aleatorio</button>
+    <button onclick="iniciarJuego(2)">🔢 Ordenado</button>
+    <button onclick="iniciarJuego(3)">⏰ Con tiempo y quitar pesetas</button>
+    <button onclick="iniciarJuego(4)">⏳ Con tiempo y pasa siguiente</button>
+    <button onclick="abrirBanco()">🏦 Banco de España</button>
+  </div>
+
+  <div id="banco" style="display:none;">
+    <h2>🏦 Banco de España</h2>
+    <p>Tus pesetas: <span id="saldoBanco"></span></p>
+    <button onclick="comprarModo(1, 500, event)">💸 x2 Pesetas (500₧)</button>
+    <button onclick="comprarModo(2, 750, event)">💶 Convertir a Euros + IVA (750₧)</button>
+    <button onclick="comprarModo(3, 600, event)">⭐ Modo Buenísimo (600₧)</button>
+    <button onclick="comprarModo(4, 300, event)">😈 Modo Malísimo (300₧)</button>
+    <button onclick="comprarModo(5, 1000, event)">♾️ Modo Infinito (1000₧)</button>
+    <br><br>
+    <button onclick="cerrarBanco()">⬅️ Volver</button>
+  </div>
+
+  <div id="juego" style="display:none;">
+    <div id="marcador">Dinero: 0 ₧</div>
+    <div id="tiempo" style="display:none;">Tiempo: 60</div>
+    <button id="atras" style="display:none;">⬅️ Atrás</button>
+    <div id="pregunta" class="pregunta"></div>
+    <div id="opciones"></div>
+    <button id="reiniciar" style="display:none;">🔁 Reiniciar</button>
+    <button id="siguiente" style="display:none;">Siguiente ➡️</button>
+  </div>
 </div>
 
 <footer>© 2025 | Juego educativo hecho por Juan El Bueno</footer>
-
 <script>
-function volverInicio() {
-  window.location.href = "index.html"; // cambia si tu archivo principal tiene otro nombre
-}
-</script>
+// --- Datos y variables ---
+const preguntas = [
+  {
+    texto: "¿Qué significa reciclar?",
+    opciones: [
+      "Quemar los residuos para eliminarlos",
+      "Transformar materiales usados en productos nuevos",
+      "Tirar los desechos al vertedero"
+    ],
+    correcta: 1
+  },
+  {
+    texto: "La economía circular busca...",
+    opciones: [
+      "Generar más residuos",
+      "Mantener el valor de los productos el mayor tiempo posible",
+      "Sustituir el reciclaje por vertederos"
+    ],
+    correcta: 1
+  },
+  {
+    texto: "¿Qué es un residuo?",
+    opciones: [
+      "Material que pierde utilidad tras usarse",
+      "Producto nuevo",
+      "Materia prima virgen"
+    ],
+    correcta: 0
+  },
+  {
+    texto: "Un ejemplo de residuo peligroso es...",
+    opciones: [
+      "Cáscaras de fruta",
+      "Botellas de vidrio",
+      "Agujas usadas"
+    ],
+    correcta: 2
+  },
+  {
+    texto: "Los residuos orgánicos se caracterizan por ser...",
+    opciones: [
+      "Biodegradables",
+      "Metálicos",
+      "Tóxicos"
+    ],
+    correcta: 0
+  },
+  {
+    texto: "La digestión anaerobia en la planta de biometanización de residuos orgánicos produce...",
+    opciones: [
+      "Vidrio reciclado",
+      "Compost",
+      "Biogás"
+    ],
+    correcta: 2
+  },
+  {
+    texto: "¿Qué se entiende por clasificación de residuos?",
+    opciones: [
+      "Separarlos según su origen y composición",
+      "Tirarlos todos juntos",
+      "Quemarlos sin control"
+    ],
+    correcta: 0
+  },
+  {
+    texto: "¿Qué residuo pertenece a los inorgánicos?",
+    opciones: [
+      "Restos de comida",
+      "Hojas secas",
+      "Botellas de plástico"
+    ],
+    correcta: 2
+  },
+  {
+    texto: "La Ley 7/2022 de Residuos y Suelos Contaminados en España regula...",
+    opciones: [
+      "El reciclaje y la economía circular",
+      "El precio de la electricidad",
+      "La calidad del aire"
+    ],
+    correcta: 0
+  },
+  {
+    texto: "Los residuos sólidos urbanos (RSU) se generan en...",
+    opciones: [
+      "Hospitales",
+      "Hogares, comercios y calles",
+      "Laboratorios"
+    ],
+    correcta: 1
+  },
+  {
+    texto: "¿Qué gas emiten los residuos orgánicos en vertederos?",
+    opciones: [
+      "Oxígeno",
+      "Metano",
+      "Hidrógeno"
+    ],
+    correcta: 1
+  },
+  {
+    texto: "¿Qué residuo es un ejemplo de electrónico?",
+    opciones: [
+      "Restos de poda",
+      "Ordenadores viejos",
+      "Papel y cartón"
+    ],
+    correcta: 1
+  },
+  {
+    texto: "La incineración de residuos se considera...",
+    opciones: [
+      "La primera opción de gestión",
+      "Una opción de último recurso",
+      "Un método de reciclaje"
+    ],
+    correcta: 1
+  },
+  {
+    texto: "¿Qué principio establece que el coste de la contaminación lo paga quien la causa?",
+    opciones: [
+      "Principio de precaución",
+      "Quien contamina paga",
+      "Principio de legalidad"
+    ],
+    correcta: 1
+  },
+  {
+    texto: "¿Cuál es un factor que influye en la generación de residuos?",
+    opciones: [
+      "El clima",
+      "La televisión",
+      "Los colores de los contenedores"
+    ],
+    correcta: 0
+  },
+  {
+    texto: "¿Qué residuos deben almacenarse en contenedores especiales?",
+    opciones: [
+      "Peligrosos",
+      "Orgánicos",
+      "De papel"
+    ],
+    correcta: 0
+  },
+  {
+    texto: "La economía lineal se basa en...",
+    opciones: [
+      "Reducir, reutilizar y reciclar",
+      "Extraer, producir, consumir y desechar",
+      "Generar compost"
+    ],
+    correcta: 1
+  },
+  {
+    texto: "¿Cuál es la regla de las 3R en la gestión de residuos?",
+    opciones: [
+      "Reducir, Reutilizar y Reciclar",
+      "Recoger, Repartir y Reusar",
+      "Recuperar, Reintegrar y Renovar"
+    ],
+    correcta: 0
+  },
+  {
+    texto: "¿Qué significa reutilizar?",
+    opciones: [
+      "Usar un producto varias veces",
+      "Fundir un material",
+      "Quemar residuos"
+    ],
+    correcta: 0
+  },
+  {
+    texto: "Un residuo hospitalario como una gasa con sangre debe...",
+    opciones: [
+      "Reciclarse con papel",
+      "Incinerarse en condiciones controladas",
+      "Tirarse en el contenedor amarillo"
+    ],
+    correcta: 1
+  }
+];
 
+
+let indice = 0,
+    dinero = parseInt(localStorage.getItem("pesetas")) || 0,
+    saldo = dinero,          // saldo siempre igual a dinero al inicio
+    modo = 1,
+    preguntasJuego = [],
+    tiempoRestante = 30,
+    timer;
+let poderes = JSON.parse(localStorage.getItem("poderes")) || {};
+
+// --- Elementos DOM ---
+const menu = document.getElementById("menu");
+const bancoDiv = document.getElementById("banco");
+const juegoDiv = document.getElementById("juego");
+const marcador = document.getElementById("marcador");
+const preguntaDiv = document.getElementById("pregunta");
+const opcionesDiv = document.getElementById("opciones");
+const tiempoDiv = document.getElementById("tiempo");
+const btnSiguiente = document.getElementById("siguiente");
+const btnReiniciar = document.getElementById("reiniciar");
+const btnAtras = document.getElementById("atras");
+
+// --- Funciones ---
+function mostrarMensaje(texto,color="gold"){
+  const msg=document.createElement("div");
+  msg.textContent=texto;
+  msg.className="mensaje";
+  msg.style.borderColor=color;
+  msg.style.color=color;
+  document.body.appendChild(msg);
+  setTimeout(()=>msg.remove(),2000);
+}
+
+function actualizarBotonesBanco() {
+  const botones = bancoDiv.querySelectorAll("button");
+  botones.forEach((btn, index) => {
+    // los botones de compra son del 1 al 5, y usamos el índice del poder
+    const numModo = index + 1;
+    if (poderes[numModo]) {
+      btn.disabled = true; // desactiva si ya lo compraste
+    } else {
+      btn.disabled = false;
+    }
+  });
+}
+
+function actualizarMarcador(){
+  const moneda = poderes[2] ? "€" : "₧";
+  marcador.textContent = `Dinero: ${dinero} ${moneda}`;
+  localStorage.setItem("dinero", dinero); // <-- guardamos siempre
+}
+
+function actualizarBanco(){
+  document.getElementById("saldoBanco").textContent = saldo + (poderes[2] ? " €" : " ₧");
+  const botones = bancoDiv.querySelectorAll("button");
+  botones.forEach(btn=>{
+    if(btn.textContent.includes("₧") || btn.textContent.includes("€")){
+      btn.textContent = btn.textContent.replace(/₧|€/g, poderes[2] ? "€" : "₧");
+    }
+  });
+}
+
+// --- Banco ---
+// Al abrir el banco
+function abrirBanco() {
+  menu.style.display = "none"; 
+  bancoDiv.style.display = "block"; 
+  actualizarBanco();
+  actualizarBotonesBanco(); // ✅ desactiva botones comprados
+}
+
+function cerrarBanco(){bancoDiv.style.display="none"; menu.style.display="block";}
+function comprarModo(num, precio, event){
+  const boton = event.currentTarget;
+
+  // Aplicar IVA solo al modo 2 restando 21%
+  if(num===2){
+    const IVA = 0.21;
+    precio = Math.round(precio * (1 - IVA));
+  }
+
+  if(saldo<precio) return mostrarMensaje("No tienes suficiente dinero","red");
+  saldo -= precio;
+  poderes[num]=true;
+  localStorage.setItem("poderes", JSON.stringify(poderes));
+  localStorage.setItem("pesetas", saldo);
+  boton.disabled = true;
+  mostrarMensaje("¡Modo comprado con éxito!","lightgreen");
+  if(num===2) actualizarMarcador();
+  actualizarBanco();
+}
+
+// --- Juego ---
+btnAtras.onclick = ()=>{clearInterval(timer);menu.style.display="block";juegoDiv.style.display="none";btnAtras.style.display="none";};
+btnSiguiente.onclick = ()=>{indice++;btnSiguiente.style.display="none";mostrarPregunta();};
+btnReiniciar.onclick = ()=>{menu.style.display="block";juegoDiv.style.display="none";};
+
+function numeroAleatorio(max){return Math.floor(Math.random()*max)+1;}
+
+function iniciarJuego(op){
+  modo=op;menu.style.display="none";juegoDiv.style.display="block";dinero=saldo;
+  indice=0;
+  preguntasJuego=[...preguntas];if(modo===1)preguntasJuego.sort(()=>Math.random()-0.5);
+  btnSiguiente.style.display="none";btnReiniciar.style.display="none";btnAtras.style.display="inline-block";
+  actualizarMarcador();
+  mostrarPregunta();
+}
+
+function mostrarPregunta(){
+  if(modo===3||modo===4){tiempoRestante=30;tiempoDiv.style.display="block"; actualizarTiempo();}else tiempoDiv.style.display="none";
+  if(poderes[5]){preguntasJuego.sort(()=>Math.random()-0.5); if(indice>=preguntasJuego.length) indice=0;}
+  else if(indice>=preguntasJuego.length){finJuego(); return;}
+  const p = preguntasJuego[indice];
+  preguntaDiv.textContent = p.texto;
+  opcionesDiv.innerHTML="";
+  p.opciones.forEach((op,i)=>{
+    const div=document.createElement("div");
+    div.textContent=op; div.className="opcion";
+    div.onclick=()=>verificarRespuesta(i,div);
+    opcionesDiv.appendChild(div);
+  });
+}
+
+function actualizarTiempo(){
+  clearInterval(timer);
+  tiempoDiv.textContent = "Tiempo: "+tiempoRestante+"s";
+  if(poderes[3]) return;
+  timer=setInterval(()=>{
+    tiempoRestante--;
+    tiempoDiv.textContent = "Tiempo: "+tiempoRestante+"s";
+    if(tiempoRestante<=0){
+      clearInterval(timer);
+      if(modo===4){mostrarMensaje("⏰ Tiempo agotado, siguiente","yellow");indice++; mostrarPregunta();}
+      else if(modo===3){perderRandom();}
+    }
+  },1000);
+}
+
+function perderRandom(){
+  let perdida = Math.floor(Math.random()*80)+20;
+  dinero = Math.max(0,dinero-perdida);
+  saldo = dinero; localStorage.setItem("pesetas", dinero); actualizarMarcador(); actualizarBanco();
+  mostrarMensaje(`⏰ Se acabó el tiempo. Perdiste ${perdida} ${poderes[2]?"€":"₧"}`,"orange");
+}
+
+function verificarRespuesta(i,div){
+  clearInterval(timer);
+  const correcta = preguntasJuego[indice].correcta;
+  const opciones = document.querySelectorAll(".opcion");
+  opciones.forEach(op=>op.style.pointerEvents="none");
+
+  let mensajeFinal = "";
+
+  if(i===correcta){
+    div.classList.add("correcta");
+    let ganancia=numeroAleatorio(166); if(poderes[1]) ganancia*=2;
+    dinero+=ganancia;
+    mensajeFinal = `✅ ¡Acertaste! +${ganancia} ${poderes[2]?"€":"₧"}`;
+  } else {
+    div.classList.add("incorrecta");
+    opciones[correcta].classList.add("correcta");
+    let perdida=Math.floor(Math.random()*80)+20;
+    dinero=Math.max(0,dinero-perdida);
+    mensajeFinal = `❌ Fallaste. -${perdida} ${poderes[2]?"€":"₧"}`;
+    if(poderes[4]) mensajeFinal += ` | 😈 Te ayudamos: era la correcta.`;
+  }
+
+  saldo = dinero; 
+  localStorage.setItem("pesetas", dinero); 
+  actualizarMarcador(); 
+  actualizarBanco();
+  mostrarMensaje(mensajeFinal, i===correcta ? "lightgreen" : "red");
+  btnSiguiente.style.display="inline-block";
+}
+
+function finJuego(){
+  preguntaDiv.textContent=`🏆 ¡Has terminado! Obtuviste ${dinero} ${poderes[2]?"€":"₧"}.`;
+  opcionesDiv.innerHTML=""; tiempoDiv.style.display="none"; btnSiguiente.style.display="none"; btnReiniciar.style.display="inline-block";
+  clearInterval(timer); localStorage.setItem("pesetas",dinero);
+}
+
+// --- Teclas secretas ---
+document.addEventListener("keydown",(e)=>{
+  if(juegoDiv.style.display==="block" || bancoDiv.style.display==="block"){
+    if(e.key.toLowerCase()==="d"){
+      dinero+=1000; saldo=dinero; localStorage.setItem("pesetas",dinero); localStorage.setItem("teclaD",dinero);
+      actualizarMarcador(); actualizarBanco(); mostrarMensaje("💰 ¡Se añadieron 1000!","lightgreen");
+    }
+    if(e.key.toLowerCase()==="x"){
+      dinero=0; saldo=0; localStorage.removeItem("pesetas"); localStorage.removeItem("teclaD");
+      actualizarMarcador(); actualizarBanco(); mostrarMensaje("🗑️ ¡Dinero eliminado!","red");
+    }
+    if(e.key.toLowerCase()==="c"){
+      poderes={}; localStorage.setItem("poderes",JSON.stringify(poderes));
+      mostrarMensaje("⚡ Todos los poderes eliminados","orange");
+      const botonesBanco = bancoDiv.querySelectorAll("button");
+      botonesBanco.forEach(btn=>{
+        if(btn.textContent.includes("💸")||btn.textContent.includes("💶")||btn.textContent.includes("⭐")||btn.textContent.includes("😈")||btn.textContent.includes("♾️")){
+          btn.disabled=false;
+        }
+      });
+      actualizarMarcador(); actualizarBanco();
+    }
+  }
+});
+
+window.addEventListener("load", () => {
+  actualizarBotonesBanco(); // desactiva los botones de modos ya comprados
+  actualizarMarcador();      // muestra el dinero correcto
+  actualizarBanco();         // actualiza el saldo en el banco
+});
+
+</script>
 </body>
 </html>
