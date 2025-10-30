@@ -96,6 +96,7 @@ footer {
     <button onclick="iniciarJuego(3)">⏰ Con tiempo y quitar pesetas</button>
     <button onclick="iniciarJuego(4)">⏳ Con tiempo y pasa siguiente</button>
     <button onclick="abrirBanco()">🏦 Banco de España</button>
+    <button onclick="volverInicio()">⬅️ Volver al inicio</button>
   </div>
 
   <div id="banco" style="display:none;">
@@ -307,7 +308,6 @@ const preguntas = [
   }
 ];
 
-
 let indice = 0,
     dinero = parseInt(localStorage.getItem("pesetas")) || 0,
     saldo = dinero,          // saldo siempre igual a dinero al inicio
@@ -486,6 +486,10 @@ function finJuego(){
   preguntaDiv.textContent=`🏆 ¡Has terminado! Obtuviste ${dinero} ${poderes[2]?"€":"₧"}.`;
   opcionesDiv.innerHTML=""; tiempoDiv.style.display="none"; btnSiguiente.style.display="none"; btnReiniciar.style.display="inline-block";
   clearInterval(timer); localStorage.setItem("pesetas",dinero);
+}
+
+function volverInicio() {
+  window.location.href = "/";
 }
 
 // --- Teclas secretas ---
