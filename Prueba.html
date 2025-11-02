@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pasapalabra - Residuos y Medioambiente</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: radial-gradient(circle at center, #002f4b, #000);
+  color: white;
+  text-align: center;
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+h1 {
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+#rosco {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+.letra {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #003f6b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 5px;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+.letra.activa {
+  background: gold;
+  color: black;
+}
+.letra.correcta {
+  background: green;
+}
+.letra.incorrecta {
+  background: red;
+}
+#pregunta {
+  font-size: 1.2rem;
+  margin: 20px;
+  min-height: 60px;
+}
+input {
+  padding: 10px;
+  width: 60%;
+  font-size: 1rem;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+  text-align: center;
+}
+#botones {
+  margin-top: 15px;
+}
+button {
+  padding: 10px 20px;
+  margin: 5px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+#responder { background: #28a745; color: white; }
+#pasapalabra { background: #ffc107; color: black; }
+#reiniciar { background: #007bff; color: white; display:none; }
+button:hover { opacity: 0.8; }
+#resultado {
+  margin-top: 20px;
+  font-size: 1.3rem;
+}
+</style>
+</head>
+<body>
+<h1>🟦 Pasapalabra: Gestión de Residuos</h1>
+<div id="rosco"></div>
+<div id="pregunta">Pulsa “Empezar” para jugar.</div>
+<input type="text" id="respuesta" placeholder="Escribe tu respuesta aquí..." disabled />
+<div id="botones">
+  <button id="empezar">Empezar</button>
+  <button id="responder" disabled>Responder</button>
+  <button id="pasapalabra" disabled>Pasapalabra</button>
+  <button id="reiniciar">Reiniciar</button>
+</div>
+<div id="resultado"></div>
+
+<script>
+const preguntas = [
+  // Tema 1
+  { letra: "A", texto: "Un ejemplo de residuo peligroso es...", respuesta: "agujas usadas" },
+  { letra: "B", texto: "La digestión anaerobia produce...", respuesta: "biogás" },
+  { letra: "C", texto: "La regla de las 3R significa Reducir, Reutilizar y...", respuesta: "reciclar" },
+  { letra: "D", texto: "Los residuos orgánicos son...", respuesta: "biodegradables" },
+  { letra: "E", texto: "La economía lineal se basa en extraer, producir, consumir y...", respuesta: "desechar" },
+  { letra: "F", texto: "Factor que influye en la generación de residuos: el...", respuesta: "clima" },
+  { letra: "G", texto: "Gas emitido por residuos orgánicos en vertederos...", respuesta: "metano" },
+  { letra: "H", texto: "Ley española que regula residuos: Ley 7/2022 de...", respuesta: "residuos" },
+  { letra: "I", texto: "La incineración de residuos es una opción de...", respuesta: "último recurso" },
+  { letra: "J", texto: "Los residuos sólidos urbanos se generan en hogares, comercios y...", respuesta: "calles" },
+  // Tema 2
+  { letra: "K", texto: "El principal objetivo de los sistemas de recogida municipal es reducir el impacto ambiental y mejorar la...", respuesta: "calidad de vida" },
+  { letra: "L", texto: "Recogida directa desde domicilios se llama...", respuesta: "puerta a puerta" },
+  { letra: "M", texto: "Los residuos gaseosos atmosféricos no se recogen habitualmente. Verdadero o falso?", respuesta: "verdadero" },
+  { letra: "N", texto: "Aspecto fundamental en la planificación de la recogida: rutas y...", respuesta: "horarios" },
+  { letra: "O", texto: "La limpieza de contenedores evita plagas y mantiene la...", respuesta: "higiene" },
+  { letra: "P", texto: "Sistema para depositar residuos peligrosos y voluminosos...", respuesta: "puntos limpios" },
+  { letra: "Q", texto: "Herramienta que optimiza las rutas de recogida: software de...", respuesta: "planificación" },
+  { letra: "R", texto: "Vehículo con sistema de piso móvil se usa para residuos...", respuesta: "voluminosos" },
+  { letra: "S", texto: "Función de las estaciones de transferencia: almacenar residuos temporalmente y optimizar el...", respuesta: "transporte" },
+  { letra: "T", texto: "Tipo de punto limpio con mayor movilidad...", respuesta: "móvil" },
+  // Tema 3
+  { letra: "U", texto: "Los RCD son materiales generados en actividades de construcción, reforma o...", respuesta: "demolición" },
+  { letra: "V", texto: "Un material inerte típico de los RCD es el...", respuesta: "ladrillo" },
+  { letra: "W", texto: "La ley que regula residuos y economía circular es la Ley...", respuesta: "7/2022" },
+  { letra: "X", texto: "La criba se usa para separar materiales por...", respuesta: "granulometría" },
+  { letra: "Y", texto: "Un residuo ecotóxico es, por ejemplo, un...", respuesta: "plaguicida" },
+  { letra: "Z", texto: "El objetivo de la valorización de RCD es obtener nuevos productos o materiales a partir de los...", respuesta: "residuos" },
+];
+
+let indice = 0;
+let aciertos = 0;
+let fallos = 0;
+const rosco = document.getElementById("rosco");
+const pregunta = document.getElementById("pregunta");
+const respuesta = document.getElementById("respuesta");
+const btnEmpezar = document.getElementById("empezar");
+const btnResponder = document.getElementById("responder");
+const btnPasapalabra = document.getElementById("pasapalabra");
+const btnReiniciar = document.getElementById("reiniciar");
+const resultado = document.getElementById("resultado");
+
+preguntas.forEach(p => {
+  const span = document.createElement("div");
+  span.className = "letra";
+  span.textContent = p.letra;
+  rosco.appendChild(span);
+});
+const letras = document.querySelectorAll(".letra");
+
+function mostrarPregunta() {
+  if (indice >= preguntas.length) {
+    finalizar();
+    return;
+  }
+  letras.forEach(l => l.classList.remove("activa"));
+  letras[indice].classList.add("activa");
+  pregunta.textContent = preguntas[indice].texto;
+  respuesta.value = "";
+  respuesta.focus();
+}
+
+function comprobar() {
+  const r = respuesta.value.trim().toLowerCase();
+  const correcta = preguntas[indice].respuesta.toLowerCase();
+  if (r === correcta) {
+    letras[indice].classList.add("correcta");
+    aciertos++;
+  } else {
+    letras[indice].classList.add("incorrecta");
+    fallos++;
+  }
+  siguiente();
+}
+
+function siguiente() {
+  indice++;
+  mostrarPregunta();
+}
+
+function pasapalabra() {
+  preguntas.push(preguntas.splice(indice, 1)[0]); // mover al final
+  mostrarPregunta();
+}
+
+function finalizar() {
+  pregunta.textContent = "Juego terminado 🎉";
+  respuesta.disabled = true;
+  btnResponder.disabled = true;
+  btnPasapalabra.disabled = true;
+  btnReiniciar.style.display = "inline-block";
+  resultado.textContent = `✅ Aciertos: ${aciertos} | ❌ Fallos: ${fallos}`;
+}
+
+btnEmpezar.onclick = () => {
+  btnEmpezar.style.display = "none";
+  respuesta.disabled = false;
+  btnResponder.disabled = false;
+  btnPasapalabra.disabled = false;
+  mostrarPregunta();
+};
+
+btnResponder.onclick = comprobar;
+btnPasapalabra.onclick = pasapalabra;
+btnReiniciar.onclick = () => window.location.reload();
+respuesta.addEventListener("keydown", e => {
+  if (e.key === "Enter") comprobar();
+});
+</script>
+</body>
+</html>
