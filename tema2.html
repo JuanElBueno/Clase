@@ -43,9 +43,12 @@ button:hover {
   background: #ffdb58;
   transform: scale(1.05);
 }
+
+/* Animación fade */
 .fade {
   animation: fadeInUp 1s ease forwards;
 }
+
 button:disabled {
   opacity:0.5;
   cursor:not-allowed;
@@ -106,15 +109,6 @@ footer {
     <button onclick="iniciarJuego(4)">⏳ Con tiempo y pasa siguiente</button>
     <button onclick="abrirBanco()">🏦 Banco de España</button>
     <button onclick="volverInicio()">⬅️ Volver al inicio</button>
-
-    <hr style="border:1px solid gold; width:80%; margin:20px auto;">
-    <h3>💾 Guardar / Cargar progreso</h3>
-    <button onclick="generarCodigo()">📜 Generar código de guardado</button>
-    <br><br>
-    <input id="codigoGuardado" type="text" placeholder="Pega tu código aquí" style="width:60%; padding:8px; border-radius:8px; border:none; text-align:center;">
-    <br><br>
-    <button onclick="cargarCodigo()">🔓 Cargar desde código</button>
-    <div id="codigoTexto" style="margin-top:10px; color:lightgreen; font-weight:bold;"></div>
   </div>
 
   <div id="banco" style="display:none;">
@@ -141,7 +135,6 @@ footer {
 </div>
 
 <footer>© 2025 | Juego educativo hecho por Juan El Bueno</footer>
-
 <script>
 // --- Datos y variables ---
 const preguntas = [
@@ -167,9 +160,10 @@ const preguntas = [
   {texto:"¿Qué se busca con la mejora continua en la recogida de residuos?", opciones:["Mantener los mismos resultados","Identificar y aplicar mejoras en el servicio","Evitar auditorías y evaluaciones"], correcta:1}
 ];
 
+
 let indice = 0,
     dinero = parseInt(localStorage.getItem("pesetas")) || 0,
-    saldo = dinero,
+    saldo = dinero,          // saldo siempre igual a dinero al inicio
     modo = 1,
     preguntasJuego = [],
     tiempoRestante = 30,
@@ -202,9 +196,10 @@ function mostrarMensaje(texto,color="gold"){
 function actualizarBotonesBanco() {
   const botones = bancoDiv.querySelectorAll("button");
   botones.forEach((btn, index) => {
+    // los botones de compra son del 1 al 5, y usamos el índice del poder
     const numModo = index + 1;
     if (poderes[numModo]) {
-      btn.disabled = true;
+      btn.disabled = true; // desactiva si ya lo compraste
     } else {
       btn.disabled = false;
     }
@@ -214,7 +209,7 @@ function actualizarBotonesBanco() {
 function actualizarMarcador(){
   const moneda = poderes[2] ? "€" : "₧";
   marcador.textContent = `Dinero: ${dinero} ${moneda}`;
-  localStorage.setItem("pesetas", dinero);
+  localStorage.setItem("dinero", dinero); // <-- guardamos siempre
 }
 
 function actualizarBanco(){
@@ -227,17 +222,25 @@ function actualizarBanco(){
   });
 }
 
+// --- Banco ---
+// Al abrir el banco
 function abrirBanco() {
   menu.style.display = "none"; 
   bancoDiv.style.display = "block"; 
   actualizarBanco();
-  actualizarBotonesBanco();
+  actualizarBotonesBanco(); // ✅ desactiva botones comprados
 }
 
 function cerrarBanco(){bancoDiv.style.display="none"; menu.style.display="block";}
 function comprarModo(num, precio, event){
   const boton = event.currentTarget;
-  if(num===2){const IVA = 0.21;precio = Math.round(precio * (1 - IVA));}
+
+  // Aplicar IVA solo al modo 2 restando 21%
+  if(num===2){
+    const IVA = 0.21;
+    precio = Math.round(precio * (1 - IVA));
+  }
+
   if(saldo<precio) return mostrarMensaje("No tienes suficiente dinero","red");
   saldo -= precio;
   poderes[num]=true;
@@ -249,11 +252,13 @@ function comprarModo(num, precio, event){
   actualizarBanco();
 }
 
+// --- Juego ---
 btnAtras.onclick = ()=>{clearInterval(timer);menu.style.display="block";juegoDiv.style.display="none";btnAtras.style.display="none";};
 btnSiguiente.onclick = ()=>{indice++;btnSiguiente.style.display="none";mostrarPregunta();};
 btnReiniciar.onclick = ()=>{menu.style.display="block";juegoDiv.style.display="none";};
 
 function numeroAleatorio(max){return Math.floor(Math.random()*max)+1;}
+
 function iniciarJuego(op){
   modo=op;menu.style.display="none";juegoDiv.style.display="block";dinero=saldo;
   indice=0;
@@ -344,11 +349,11 @@ function volverInicio() {
 document.addEventListener("keydown",(e)=>{
   if(juegoDiv.style.display==="block" || bancoDiv.style.display==="block"){
     if(e.key.toLowerCase()==="d"){
-      dinero+=1000; saldo=dinero; localStorage.setItem("pesetas",dinero);
+      dinero+=1000; saldo=dinero; localStorage.setItem("pesetas",dinero); localStorage.setItem("teclaD",dinero);
       actualizarMarcador(); actualizarBanco(); mostrarMensaje("💰 ¡Se añadieron 1000!","lightgreen");
     }
     if(e.key.toLowerCase()==="x"){
-      dinero=0; saldo=0; localStorage.removeItem("pesetas");
+      dinero=0; saldo=0; localStorage.removeItem("pesetas"); localStorage.removeItem("teclaD");
       actualizarMarcador(); actualizarBanco(); mostrarMensaje("🗑️ ¡Dinero eliminado!","red");
     }
     if(e.key.toLowerCase()==="c"){
@@ -365,59 +370,12 @@ document.addEventListener("keydown",(e)=>{
   }
 });
 
-// --- SISTEMA DE CÓDIGO DE GUARDADO ---
-function generarCodigo() {
-  const estado = { dinero: dinero, poderes: poderes };
-  const json = JSON.stringify(estado);
-  const base64 = btoa(json);
-  const randomTag = Math.random().toString(36).substring(2, 8).toUpperCase();
-  const codigoFinal = randomTag + "-" + base64;
-
-  const div = document.getElementById("codigoTexto");
-  div.textContent = "Código: " + codigoFinal;
-  div.style.cursor = "pointer";
-  div.onclick = () => {
-    navigator.clipboard.writeText(codigoFinal);
-    mostrarMensaje("📋 ¡Código copiado al portapapeles!", "lightgreen");
-  };
-  mostrarMensaje("💾 Progreso guardado con éxito", "lightgreen");
-}
-
-function cargarCodigo() {
-  const input = document.getElementById("codigoGuardado").value.trim();
-  if (!input.includes("-")) {
-    mostrarMensaje("❌ Código inválido", "red");
-    return;
-  }
-
-  try {
-    const base64Part = input.split("-")[1];
-    const json = atob(base64Part);
-    const estado = JSON.parse(json);
-
-    if (estado.dinero !== undefined && estado.poderes !== undefined) {
-      dinero = estado.dinero;
-      saldo = dinero;
-      poderes = estado.poderes;
-      localStorage.setItem("pesetas", dinero);
-      localStorage.setItem("poderes", JSON.stringify(poderes));
-      actualizarMarcador();
-      actualizarBanco();
-      actualizarBotonesBanco();
-      mostrarMensaje("✅ Progreso restaurado correctamente", "lightgreen");
-    } else {
-      mostrarMensaje("❌ Código corrupto o incompleto", "red");
-    }
-  } catch {
-    mostrarMensaje("⚠️ Código inválido o dañado", "red");
-  }
-}
-
 window.addEventListener("load", () => {
-  actualizarBotonesBanco();
-  actualizarMarcador();
-  actualizarBanco();
+  actualizarBotonesBanco(); // desactiva los botones de modos ya comprados
+  actualizarMarcador();      // muestra el dinero correcto
+  actualizarBanco();         // actualiza el saldo en el banco
 });
+
 </script>
 </body>
 </html>
