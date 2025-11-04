@@ -73,12 +73,25 @@ footer {
     <h1>¿Quién quiere ser millonario? 💰</h1>
     <h2>Elige un tema para empezar</h2>
 
-    <button onclick="window.location.href='tema1.html'">🏗️ Tema 1: Operaciones basicas de recojida y tratamiento de Residuos de residuos municipales e insdustiales </button>
-    <button onclick="window.location.href='tema2.html'">🌿 Tema 2: Recojida y tratamiento de Residuos municipales</button>
-    <button onclick="window.location.href='tema3.html'">🔄 Tema 3: Recojida y tratamiento de Residuos insdustiales</button>
-    <button onclick="window.location.href='tema4.html'">⚖️ Tema 4: Seguridad y salud laboral</button>
+    <button onclick="iniciarTema('tema1.html')">🏗️ Tema 1: Operaciones básicas de recogida y tratamiento de residuos municipales e industriales</button>
+    <button onclick="iniciarTema('tema2.html')">🌿 Tema 2: Recogida y tratamiento de residuos municipales</button>
+    <button onclick="iniciarTema('tema3.html')">🔄 Tema 3: Recogida y tratamiento de residuos industriales</button>
+    <button onclick="iniciarTema('tema4.html')">⚖️ Tema 4: Seguridad y salud laboral</button>
   </div>
 
   <footer>© 2025 | Juego educativo hecho por Juan El Bueno</footer>
+
+  <script>
+    function iniciarTema(url) {
+      // 🔥 Limpiar toda la memoria guardada
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Opcional: pequeño retraso visual
+      setTimeout(() => {
+        window.location.href = url;
+      }, 150);
+    }
+  </script>
 </body>
 </html>
