@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pasapalabra - Seguridad y Prevención</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: radial-gradient(circle at center, #003b5c, #000);
+  color: white;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+}
+#rosco {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 20px auto;
+  max-width: 600px;
+}
+.letra {
+  width: 40px;
+  height: 40px;
+  margin: 5px;
+  border-radius: 50%;
+  background: #444;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-weight: bold;
+  transition: 0.3s;
+}
+.letra.activa { background: #00aaff; }
+.letra.acertada { background: #2ecc71; }
+.letra.fallada { background: #e74c3c; }
+#pregunta { font-size: 1.2em; margin: 20px; min-height: 60px; }
+input {
+  padding: 10px;
+  font-size: 1em;
+  border-radius: 6px;
+  border: none;
+  width: 80%;
+  margin-bottom: 10px;
+}
+button {
+  background: #00aaff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1em;
+  margin: 5px;
+}
+button:hover { background: #0088cc; }
+</style>
+</head>
+<body>
+<h1>Pasapalabra - Tema 4: Seguridad y Prevención</h1>
+
+<div id="rosco"></div>
+<div id="pregunta"></div>
+
+<input type="text" id="respuesta" placeholder="Escribe tu respuesta...">
+<br>
+<button id="responderBtn">Responder</button>
+<button id="pasapalabraBtn">Pasapalabra</button>
+
+<script>
+const preguntas = [
+  { letra: "A", texto: "¿Cuál es el objetivo principal de la señalización básica de seguridad en el lugar de trabajo?", respuesta: "informar" },
+  { letra: "B", texto: "Las señales de prohibición indican...", respuesta: "acciones no permitidas" },
+  { letra: "C", texto: "Un ejemplo de señal de obligación sería...", respuesta: "uso obligatorio de casco" },
+  { letra: "D", texto: "¿Qué información proporcionan las señales de salvamento o socorro?", respuesta: "equipos de emergencia" },
+  { letra: "E", texto: "Las señales de fuego indican...", respuesta: "equipos contra incendios" },
+  { letra: "F", texto: "¿Cuál es el principal objetivo de la prevención de riesgos laborales?", respuesta: "salud" },
+  { letra: "G", texto: "¿Qué elemento se utiliza para minimizar exposición a agentes químicos?", respuesta: "ventilación" },
+  { letra: "H", texto: "¿Qué se busca con la capacitación del personal?", respuesta: "conocer riesgos" },
+  { letra: "I", texto: "¿Cuál de los siguientes factores es una condición adversa?", respuesta: "exposición solar" },
+  { letra: "J", texto: "¿Cuál es el objetivo de la política de prevención?", respuesta: "objetivos y responsabilidades" },
+  { letra: "K", texto: "¿Qué medida ayuda a adaptarse a turnos nocturnos?", respuesta: "adaptación" },
+  { letra: "L", texto: "¿Qué previene lesiones musculoesqueléticas?", respuesta: "ergonomía" },
+  { letra: "M", texto: "¿Qué riesgo se asocia a productos tóxicos o inflamables?", respuesta: "químico" },
+  { letra: "N", texto: "¿Qué medida ayuda a prevenir accidentes con maquinaria?", respuesta: "capacitación" },
+  { letra: "Ñ", texto: "¿Qué riesgos causan problemas auditivos y musculares?", respuesta: "ruido" },
+  { letra: "O", texto: "Para prevenir incendios es fundamental...", respuesta: "almacenar inflamables" },
+  { letra: "P", texto: "¿Cuál es el objetivo principal de la seguridad en el trabajo?", respuesta: "prevenir riesgos" },
+  { letra: "Q", texto: "¿Qué incluye el análisis de riesgos?", respuesta: "riesgos físicos químicos biológicos" },
+  { letra: "R", texto: "¿Por qué es importante el mantenimiento de equipos?", respuesta: "seguridad" },
+  { letra: "S", texto: "¿Qué tipo de extintor se usa en incendios eléctricos?", respuesta: "co2" },
+  { letra: "T", texto: "¿Qué equipos forman parte del EPI en incendios?", respuesta: "casco guantes botas" },
+  { letra: "U", texto: "¿Qué EPI protege contra gases peligrosos?", respuesta: "mascarilla" },
+  { letra: "V", texto: "¿Qué significa señal de obligación?", respuesta: "acción obligatoria" },
+  { letra: "W", texto: "¿Qué riesgo puede generar vibraciones intensas?", respuesta: "muscular" },
+  { letra: "X", texto: "¿Qué acción previene riesgos eléctricos?", respuesta: "guantes dieléctricos" },
+  { letra: "Y", texto: "¿Qué color se usa en señales de obligación?", respuesta: "azul" },
+  { letra: "Z", texto: "¿Qué indica una señal verde?", respuesta: "emergencia" }
+];
+
+let pendientes = [...preguntas];
+let indice = 0;
+const rosco = document.getElementById("rosco");
+const preguntaDiv = document.getElementById("pregunta");
+const respuestaInput = document.getElementById("respuesta");
+const responderBtn = document.getElementById("responderBtn");
+const pasapalabraBtn = document.getElementById("pasapalabraBtn");
+
+preguntas.forEach(p => {
+  const div = document.createElement("div");
+  div.classList.add("letra");
+  div.textContent = p.letra;
+  rosco.appendChild(div);
+});
+
+const letras = document.querySelectorAll(".letra");
+
+function mostrarPregunta() {
+  if (pendientes.length === 0) {
+    preguntaDiv.textContent = "🎉 ¡Has completado el rosco!";
+    respuestaInput.style.display = "none";
+    responderBtn.style.display = "none";
+    pasapalabraBtn.style.display = "none";
+    return;
+  }
+
+  letras.forEach(l => l.classList.remove("activa"));
+  const letraActual = pendientes[indice].letra;
+  const divLetra = [...letras].find(l => l.textContent === letraActual);
+  divLetra.classList.add("activa");
+
+  preguntaDiv.textContent = `${pendientes[indice].letra}) ${pendientes[indice].texto}`;
+  respuestaInput.value = "";
+  respuestaInput.focus();
+}
+
+function responder() {
+  const texto = respuestaInput.value.trim().toLowerCase();
+  const p = pendientes[indice];
+  const letraDiv = [...letras].find(l => l.textContent === p.letra);
+
+  if (texto === p.respuesta.toLowerCase()) {
+    letraDiv.classList.add("acertada");
+    pendientes.splice(indice, 1);
+  } else {
+    letraDiv.classList.add("fallada");
+    pendientes.splice(indice, 1);
+  }
+
+  if (indice >= pendientes.length) indice = 0;
+  mostrarPregunta();
+}
+
+function pasapalabra() {
+  indice++;
+  if (indice >= pendientes.length) indice = 0;
+  mostrarPregunta();
+}
+
+responderBtn.onclick = responder;
+pasapalabraBtn.onclick = pasapalabra;
+respuestaInput.addEventListener("keydown", e => {
+  if (e.key === "Enter") responder();
+});
+
+mostrarPregunta();
+</script>
+</body>
+</html>
