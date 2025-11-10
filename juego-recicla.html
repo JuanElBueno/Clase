@@ -61,8 +61,8 @@
       display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; transition:transform .12s ease, border-color .12s ease, box-shadow .12s ease
     }
     .dropzone[data-accept] {outline:2px dashed rgba(148,163,184,.25)}
-    .dropzone h4{margin:0; font-size:14px}
-    .dropzone .emoji{font-size:24px}
+    .dropzone h4{margin:0; font-size:24px}
+    .dropzone .emoji{font-size:48px}
     .dropzone.ok{border-color:#16a34a; box-shadow:0 0 0 3px rgba(34,197,94,.25)}
     .dropzone.no{border-color:#ef4444; box-shadow:0 0 0 3px rgba(239,68,68,.25)}
 
@@ -76,8 +76,8 @@
       touch-action:none; font-weight:700
     }
     .item:active{cursor:grabbing}
-    .item .emoji{font-size:20px}
-    .item .label{font-size:14px}
+    .item .emoji{font-size:40px}
+    .item .label{font-size:26px}
 
     .toast{
       position:absolute; right:12px; bottom:12px; background:rgba(3,7,18,.85); border:1px solid #1f2937; padding:12px 14px; border-radius:12px; display:none
@@ -178,7 +178,7 @@
   ]
 
   // --- Estado ---
-  let score = 0, level = 1, lives = 3, timeLeft = 100, running = false;
+  let score = 0, level = 1, lives = 10, timeLeft = 1000, running = false;
   let spawnInterval = null, timerInterval = null, nextId = 0;
 
   // --- UI ---
