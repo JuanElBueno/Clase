@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Recicla y Gana ♻️</title>
+  <style>
+    :root{
+      --bg:#0f172a;           /* slate-900 */
+      --panel:#111827;        /* gray-900 */
+      --muted:#94a3b8;        /* slate-400 */
+      --text:#e5e7eb;         /* gray-200 */
+      --accent:#22c55e;       /* green-500 */
+      --warn:#eab308;         /* amber-500 */
+      --bad:#ef4444;          /* red-500 */
+      --card:#1f2937;         /* gray-800 */
+      --shadow: 0 10px 25px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:system-ui,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;
+      background: radial-gradient(1200px 600px at 75% -10%, rgba(34,197,94,.15), transparent 60%),
+                  radial-gradient(900px 500px at 0% 120%, rgba(59,130,246,.15), transparent 60%),
+                  var(--bg);
+      color:var(--text);
+      min-height:100dvh; display:flex; flex-direction:column;
+    }
+    header{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      padding:16px clamp(12px, 3vw, 28px);
+    }
+    .title{font-weight:800; letter-spacing:.3px; display:flex; align-items:center; gap:10px}
+    .title .pill{background:rgba(34,197,94,.15); color:#86efac; padding:4px 10px; border-radius:999px; font-size:12px; border:1px solid rgba(134,239,172,.3)}
+    .hud{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+    .stat{background:var(--panel); border:1px solid #1f2937; padding:8px 12px; border-radius:12px; box-shadow:var(--shadow); font-weight:700}
+    .stat small{display:block; color:var(--muted); font-weight:600}
+    .btn{appearance:none; border:none; background:linear-gradient(180deg,#34d399,#10b981); color:#052e1a;
+         padding:10px 14px; border-radius:12px; font-weight:800; cursor:pointer; box-shadow:var(--shadow);}
+    .btn.secondary{background:transparent; color:var(--text); border:1px solid #374151}
+    .btn:active{transform:translateY(1px)}
+
+    main{flex:1; display:grid; grid-template-columns: 320px 1fr; gap:16px; padding:0 clamp(12px, 3vw, 28px) 20px}
+    @media (max-width: 980px){ main{grid-template-columns: 1fr} }
+
+    .left{
+      background:var(--panel); border:1px solid #1f2937; border-radius:16px; padding:14px; box-shadow:var(--shadow);
+      display:flex; flex-direction:column; gap:12px; min-height:200px
+    }
+    .fact{background:var(--card); border:1px dashed #334155; border-radius:14px; padding:12px; color:#cbd5e1}
+
+    .game{
+      position:relative; min-height:520px; background:rgba(15,23,42,.55);
+      border:1px solid #1f2937; border-radius:16px; overflow:hidden; box-shadow:var(--shadow);
+    }
+    .lane{position:absolute; inset:0; padding:14px; display:grid; grid-template-rows: 1fr auto; gap:10px}
+    .dropzone-wrap{display:grid; grid-template-columns: repeat(6, 1fr); gap:10px}
+    @media (max-width: 920px){ .dropzone-wrap{grid-template-columns: repeat(3, 1fr)} }
+
+    .dropzone{
+      background:linear-gradient(180deg,#0b1220,#0a0f1a); border:1px solid #1f2937; border-radius:14px; min-height:108px; padding:10px;
+      display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; transition:transform .12s ease, border-color .12s ease, box-shadow .12s ease
+    }
+    .dropzone[data-accept] {outline:2px dashed rgba(148,163,184,.25)}
+    .dropzone h4{margin:0; font-size:14px}
+    .dropzone .emoji{font-size:24px}
+    .dropzone.ok{border-color:#16a34a; box-shadow:0 0 0 3px rgba(34,197,94,.25)}
+    .dropzone.no{border-color:#ef4444; box-shadow:0 0 0 3px rgba(239,68,68,.25)}
+
+    .spawn{
+      position:absolute; left:50%; top:12px; transform:translateX(-50%);
+      display:flex; gap:8px; flex-wrap:wrap; justify-content:center
+    }
+    .item{
+      background:linear-gradient(180deg,#111827,#0b1220); border:1px solid #273244; border-radius:12px; padding:10px 12px;
+      display:inline-flex; align-items:center; gap:8px; user-select:none; cursor:grab; box-shadow:var(--shadow);
+      touch-action:none; font-weight:700
+    }
+    .item:active{cursor:grabbing}
+    .item .emoji{font-size:20px}
+    .item .label{font-size:14px}
+
+    .toast{
+      position:absolute; right:12px; bottom:12px; background:rgba(3,7,18,.85); border:1px solid #1f2937; padding:12px 14px; border-radius:12px; display:none
+    }
+    .toast.show{display:block; animation: pop .2s ease}
+    @keyframes pop{ from{transform:scale(.96); opacity:.7} }
+
+    .confetti{ position:absolute; inset:0; pointer-events:none}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title">
+      <span style="font-size:22px">♻️ Recicla y Gana</span>
+      <span class="pill">Arrastra cada residuo al contenedor correcto</span>
+    </div>
+    <div class="hud" role="status" aria-live="polite">
+      <div class="stat"><small>Puntos</small><span id="score">0</span></div>
+      <div class="stat"><small>Nivel</small><span id="level">1</span></div>
+      <div class="stat"><small>Vidas</small><span id="lives">3</span></div>
+      <div class="stat"><small>Tiempo</small><span id="time">60</span>s</div>
+      <button class="btn" id="btnStart">▶ Iniciar</button>
+      <button class="btn secondary" id="btnReset">↺ Reiniciar</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="left">
+      <h3>Cómo se juega</h3>
+      <ol style="margin:0; padding-left:18px; color:#cbd5e1">
+        <li>Arrastra cada <strong>objeto</strong> al contenedor correcto.</li>
+        <li>Cada acierto suma puntos y tiempo bonus. Ojo con los fallos.</li>
+        <li>Supera niveles para ganar velocidad y nuevos residuos.</li>
+        <li>¿Sin ratón? Usa <kbd>Tab</kbd> para enfocar un objeto y <kbd>1–6</kbd> para enviarlo a un contenedor.</li>
+      </ol>
+      <div class="fact" id="fact">Dato: Separar bien el papel evita que se mezcle con orgánicos y se pierda para reciclar.</div>
+    </section>
+
+    <section class="game" aria-label="Área de juego">
+      <div class="lane">
+        <div class="spawn" id="spawn" aria-live="polite"></div>
+        <div class="dropzone-wrap" id="zones"></div>
+      </div>
+      <canvas class="confetti" id="fx" width="1200" height="700"></canvas>
+      <div class="toast" id="toast"></div>
+    </section>
+  </main>
+
+  <template id="tpl-item">
+    <div class="item" draggable="true" tabindex="0" role="button" aria-grabbed="false" aria-label="Residuo para reciclar">
+      <span class="emoji">🧩</span>
+      <span class="label">Objeto</span>
+    </div>
+  </template>
+
+  <script>
+  // --- Datos del juego ---
+  const CATEGORIES = [
+    { id:'papel',  name:'Papel y cartón',    key:'1', emoji:'📄', bin:'🗞️', color:'#38bdf8', examples:['Caja de cartón','Revista','Factura','Huevera de cartón'] },
+    { id:'plast',  name:'Envases (plástico/latas)', key:'2', emoji:'🥤', bin:'🟡', color:'#fbbf24', examples:['Botella de plástico','Lata','Brick de leche','Bolsa'] },
+    { id:'vidrio', name:'Vidrio',            key:'3', emoji:'🍾', bin:'🟢', color:'#22c55e', examples:['Bote de vidrio','Botella','Tarro de mermelada'] },
+    { id:'organ',  name:'Orgánico',          key:'4', emoji:'🍌', bin:'🟤', color:'#a3e635', examples:['Cáscara de plátano','Posos de café','Restos de comida'] },
+    { id:'raee',   name:'RAEE (electrónicos)', key:'5', emoji:'💻', bin:'🔌', color:'#a78bfa', examples:['Móvil viejo','Pila','Bombilla','Cargador'] },
+    { id:'resto',  name:'Resto',             key:'6', emoji:'🗑️', bin:'⚫', color:'#94a3b8', examples:['Papel sucio','Cerámica rota','Polvo de barrer'] },
+  ]
+
+  const ITEMS = [
+    {label:'Caja de cartón', cat:'papel', emoji:'📦'},
+    {label:'Revista', cat:'papel', emoji:'📰'},
+    {label:'Factura', cat:'papel', emoji:'📃'},
+    {label:'Huevera de cartón', cat:'papel', emoji:'🥚'},
+    {label:'Botella de plástico', cat:'plast', emoji:'🧴'},
+    {label:'Lata de refresco', cat:'plast', emoji:'🥫'},
+    {label:'Brick de leche', cat:'plast', emoji:'🥛'},
+    {label:'Bolsa', cat:'plast', emoji:'🛍️'},
+    {label:'Bote de vidrio', cat:'vidrio', emoji:'🧪'},
+    {label:'Botella de vidrio', cat:'vidrio', emoji:'🍾'},
+    {label:'Tarro de mermelada', cat:'vidrio', emoji:'🥫'},
+    {label:'Cáscara de plátano', cat:'organ', emoji:'🍌'},
+    {label:'Posos de café', cat:'organ', emoji:'☕'},
+    {label:'Restos de comida', cat:'organ', emoji:'🍽️'},
+    {label:'Móvil viejo', cat:'raee', emoji:'📱'},
+    {label:'Pila', cat:'raee', emoji:'🔋'},
+    {label:'Bombilla', cat:'raee', emoji:'💡'},
+    {label:'Cargador', cat:'raee', emoji:'🔌'},
+    {label:'Papel sucio', cat:'resto', emoji:'🧻'},
+    {label:'Cerámica rota', cat:'resto', emoji:'🏺'},
+    {label:'Polvo de barrer', cat:'resto', emoji:'🧹'},
+  ]
+
+  const FACTS = [
+    'Cada lata reciclada ahorra suficiente energía para encender una bombilla durante horas.',
+    'El vidrio puede reciclarse infinitas veces sin perder calidad.',
+    'Los RAEE deben ir a puntos limpios o tiendas con recogida, nunca al contenedor.',
+    'El papel manchado de grasa (p. ej. pizza) va a resto, no al contenedor azul.',
+    'Compostar lo orgánico reduce metano y mejora el suelo.',
+    'Aplastar botellas y bricks ahorra espacio en el contenedor amarillo.',
+  ]
+
+  // --- Estado ---
+  let score = 0, level = 1, lives = 3, timeLeft = 100, running = false;
+  let spawnInterval = null, timerInterval = null, nextId = 0;
+
+  // --- UI ---
+  const spawn = document.getElementById('spawn');
+  const zonesWrap = document.getElementById('zones');
+  const scoreEl = document.getElementById('score');
+  const levelEl = document.getElementById('level');
+  const livesEl = document.getElementById('lives');
+  const timeEl = document.getElementById('time');
+  const toast = document.getElementById('toast');
+  const factEl = document.getElementById('fact');
+  const tplItem = document.getElementById('tpl-item');
+  const fx = document.getElementById('fx');
+  const ctx = fx.getContext('2d');
+
+  // Adapt canvas to element size
+  const resizeFx = () => {
+    const r = fx.getBoundingClientRect();
+    fx.width = r.width * devicePixelRatio; fx.height = r.height * devicePixelRatio;
+    ctx.scale(devicePixelRatio, devicePixelRatio);
+  };
+  const ro = new ResizeObserver(resizeFx); ro.observe(fx);
+
+  // Construir contenedores
+  function buildZones(){
+    zonesWrap.innerHTML = '';
+    CATEGORIES.forEach(c => {
+      const z = document.createElement('div');
+      z.className = 'dropzone'; z.dataset.accept = c.id; z.tabIndex = 0;
+      z.setAttribute('role','region');
+      z.setAttribute('aria-label',`Contenedor ${c.name}`);
+      z.innerHTML = `<div class="emoji" aria-hidden="true">${c.bin}</div><h4>${c.name}</h4><div style="font-size:12px;color:#94a3b8">${c.key}️⃣</div>`;
+      addDndHandlers(z);
+      zonesWrap.appendChild(z);
+    });
+  }
+
+  // Drag & drop + teclado
+  function addDndHandlers(zone){
+    zone.addEventListener('dragover', e=>{ e.preventDefault(); zone.classList.add('ok'); });
+    zone.addEventListener('dragleave', ()=> zone.classList.remove('ok'));
+    zone.addEventListener('drop', e=>{
+      e.preventDefault(); zone.classList.remove('ok');
+      const id = e.dataTransfer.getData('text/plain');
+      const el = document.querySelector(`[data-id="${id}"]`);
+      if(el){ checkDrop(el.dataset.cat, zone.dataset.accept, el); }
+    });
+  }
+
+  function makeItem(){
+    const data = ITEMS[Math.floor(Math.random()*ITEMS.length)];
+    const node = tplItem.content.firstElementChild.cloneNode(true);
+    const id = `i${nextId++}`;
+    node.dataset.id = id; node.dataset.cat = data.cat;
+    node.querySelector('.emoji').textContent = data.emoji;
+    node.querySelector('.label').textContent = data.label;
+
+    node.addEventListener('dragstart', e=>{
+      node.setAttribute('aria-grabbed','true');
+      e.dataTransfer.setData('text/plain', id);
+    });
+    node.addEventListener('dragend', ()=> node.setAttribute('aria-grabbed','false'));
+
+    // Teclado: 1-6 envía al contenedor
+    node.addEventListener('keydown', e=>{
+      const map = { '1':'papel','2':'plast','3':'vidrio','4':'organ','5':'raee','6':'resto' };
+      if(map[e.key]){
+        const target = document.querySelector(`.dropzone[data-accept="${map[e.key]}"]`);
+        checkDrop(node.dataset.cat, map[e.key], node);
+        target.classList.add('ok'); setTimeout(()=>target.classList.remove('ok'), 250);
+      }
+    });
+
+    spawn.appendChild(node);
+  }
+
+  function checkDrop(cat, accept, el){
+    if(!running) return;
+    if(cat === accept){
+      score += 10 + level; timeLeft += 2; pulse(el, true); remove(el);
+      flashToast('¡Correcto! +10 pts, +2s', 'ok');
+      randomFact();
+      confetti();
+      if(score >= level * 100){ level++; levelEl.textContent = level; adjustDifficulty(); flashToast(`Nivel ${level} alcanzado`, 'ok'); }
+    } else {
+      lives--; timeLeft = Math.max(0, timeLeft-2); pulse(el, false);
+      flashToast('Ups, ese contenedor no toca (-1 vida, -2s)', 'bad');
+      if(lives<=0) return gameOver();
+      livesEl.textContent = lives;
+    }
+  }
+
+  function pulse(el, good){
+    el.style.transition='transform .15s ease, filter .15s ease, opacity .2s ease';
+    el.style.transform='scale(1.05)'; el.style.filter = good? 'drop-shadow(0 0 0.6rem rgba(34,197,94,.6))' : 'drop-shadow(0 0 0.6rem rgba(239,68,68,.6))';
+    setTimeout(()=>{ el.style.opacity=.2; }, 100);
+    setTimeout(()=> remove(el), 180);
+  }
+  function remove(el){ el.remove(); updateHud(); }
+
+  function updateHud(){ scoreEl.textContent = score; timeEl.textContent = Math.max(0, Math.ceil(timeLeft)); }
+
+  function flashToast(msg, type){
+    toast.textContent = msg; toast.className='toast show';
+    toast.style.borderColor = type==='ok'? '#16a34a' : '#ef4444';
+    clearTimeout(toast._t); toast._t=setTimeout(()=> toast.classList.remove('show'), 1200);
+  }
+  function randomFact(){ factEl.textContent = 'Dato: ' + FACTS[Math.floor(Math.random()*FACTS.length)]; }
+
+  function adjustDifficulty(){
+    clearInterval(spawnInterval);
+    const rate = Math.max(600, 1600 - (level-1)*150);
+    spawnInterval = setInterval(()=>{ if(running) makeItem(); }, rate);
+  }
+
+  function start(){
+    if(running) return; running = true;
+    if(!timerInterval){ timerInterval = setInterval(()=>{ if(!running) return; timeLeft -= 1; updateHud(); if(timeLeft<=0) gameOver(); }, 1000); }
+    adjustDifficulty();
+    makeItem(); makeItem();
+  }
+  function reset(){
+    running = false; clearInterval(spawnInterval); spawnInterval=null;
+    score=0; level=1; lives=3; timeLeft=60; updateHud(); levelEl.textContent=1; livesEl.textContent=3;
+    spawn.innerHTML=''; flashToast('Juego reiniciado', 'ok'); randomFact();
+  }
+  function gameOver(){ running=false; clearInterval(spawnInterval); spawnInterval=null;
+    flashToast(`Fin del juego – Puntuación: ${score}`, 'bad');
+    banner(`🧹 ¡Buen intento! Puntuación: ${score}. Pulsa "Reiniciar" para jugar de nuevo.`);
+  }
+
+  // Mini banner en el área de juego
+  function banner(text){
+    const b = document.createElement('div');
+    b.style.position='absolute'; b.style.inset='20% 10%'; b.style.background='rgba(2,6,23,.8)'; b.style.backdropFilter='blur(2px)';
+    b.style.border='1px solid #334155'; b.style.borderRadius='18px'; b.style.display='grid'; b.style.placeItems='center'; b.style.textAlign='center';
+    b.style.padding='24px'; b.style.fontSize='18px'; b.innerHTML = text;
+    const g = document.querySelector('.game'); g.appendChild(b);
+    setTimeout(()=> b.remove(), 2500);
+  }
+
+  // Efecto confeti sencillo
+  function confetti(){
+    const w = fx.clientWidth, h = fx.clientHeight; const particles = [];
+    for(let i=0;i<12;i++){
+      particles.push({ x:Math.random()*w, y:-10, vy: 2+Math.random()*2, vx: (Math.random()-.5)*1.2, s: 3+Math.random()*3, life: 40+Math.random()*20 })
+    }
+    let ticks = 0;
+    (function loop(){
+      if(ticks++>55) return; requestAnimationFrame(loop);
+      ctx.clearRect(0,0,w,h);
+      particles.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; p.vy+=.02; p.life--; });
+      particles.forEach(p=>{ ctx.globalAlpha = Math.max(0, p.life/60); ctx.fillRect(p.x, p.y, p.s, p.s); });
+    })();
+  }
+
+  // Botones
+  document.getElementById('btnStart').addEventListener('click', start);
+  document.getElementById('btnReset').addEventListener('click', reset);
+
+  // Inicialización
+  buildZones(); updateHud(); randomFact(); resizeFx();
+
+  // Accesibilidad extra: teclas rápidas globales
+  window.addEventListener('keydown', (e)=>{
+    if(e.key===' '){ e.preventDefault(); start(); }
+    if(e.key.toLowerCase()==='r'){ reset(); }
+  });
+
+  // Tooltip de ayuda inicial
+  setTimeout(()=> banner('Arrastra los objetos a su contenedor. Usa 1️⃣-6️⃣ para clasificar con el teclado.'), 400);
+  </script>
+</body>
+</html>
