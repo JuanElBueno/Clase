@@ -111,6 +111,18 @@ footer {
   margin-top: 15px;
   text-shadow: 0 0 5px gold;
 }
+@keyframes toastAnim {
+  0%   { opacity:0; transform:translateX(-50%) translateY(0); }
+  10%  { opacity:1; transform:translateX(-50%) translateY(-10px); }
+  90%  { opacity:1; transform:translateX(-50%) translateY(-10px); }
+  100% { opacity:0; transform:translateX(-50%) translateY(-30px); }
+}
+.toast-cheat {
+  position:fixed; top:20px; left:50%; transform:translateX(-50%);
+  background:rgba(0,0,0,0.85); padding:10px 22px; border:2px solid gold;
+  border-radius:10px; z-index:9999; font-weight:bold;
+  animation:toastAnim 2s forwards;
+}
 </style>
 </head>
 <body>
@@ -300,8 +312,24 @@ function volverInicio() {
 
 btnSig.onclick = () => nuevaPalabra();
 
-// Soporte teclado físico
+function mostrarToast(texto, color="gold") {
+  const t = document.createElement("div");
+  t.textContent = texto; t.className = "toast-cheat";
+  t.style.color = color; t.style.borderColor = color;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2000);
+}
+
+// Soporte teclado físico + teclas trampa
 document.addEventListener("keydown", e => {
+  if (e.key.toLowerCase() === "d") {
+    dinero += 1000; localStorage.setItem("pesetas", dinero);
+    actualizarMarcador(); mostrarToast("💰 ¡Se añadieron 1000!", "lightgreen");
+  }
+  if (e.key.toLowerCase() === "x") {
+    dinero = 0; localStorage.setItem("pesetas", 0);
+    actualizarMarcador(); mostrarToast("🗑️ ¡Dinero eliminado!", "red");
+  }
   const l = e.key.toUpperCase();
   if (LETRAS.includes(l)) pulsarLetra(l);
 });
