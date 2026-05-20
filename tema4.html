@@ -406,7 +406,7 @@ function actualizarBotonesBanco() {
 function actualizarMarcador(){
   const moneda = poderes[2] ? "€" : "₧";
   marcador.textContent = `Dinero: ${dinero} ${moneda}`;
-  localStorage.setItem("dinero", dinero); // <-- guardamos siempre
+  localStorage.setItem("pesetas", dinero);
 }
 
 function actualizarBanco(){
@@ -432,10 +432,10 @@ function cerrarBanco(){bancoDiv.style.display="none"; menu.style.display="block"
 function comprarModo(num, precio, event){
   const boton = event.currentTarget;
 
-  // Aplicar IVA solo al modo 2 restando 21%
+  // Aplicar IVA al modo 2: precio base + 21%
   if(num===2){
     const IVA = 0.21;
-    precio = Math.round(precio * (1 - IVA));
+    precio = Math.round(precio * (1 + IVA));
   }
 
   if(saldo<precio) return mostrarMensaje("No tienes suficiente dinero","red");
@@ -539,7 +539,7 @@ function finJuego(){
 }
 
 function volverInicio() {
-  window.location.href = "/";
+  window.location.href = "index.html";
 }
 
 // --- Teclas secretas ---

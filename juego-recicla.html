@@ -178,7 +178,7 @@
   ]
 
   // --- Estado ---
-  let score = 0, level = 1, lives = 10, timeLeft = 1000, running = false;
+  let score = 0, level = 1, lives = 3, timeLeft = 60, running = false;
   let spawnInterval = null, timerInterval = null, nextId = 0;
 
   // --- UI ---
@@ -302,10 +302,12 @@
   }
   function reset(){
     running = false; clearInterval(spawnInterval); spawnInterval=null;
+    clearInterval(timerInterval); timerInterval=null;
     score=0; level=1; lives=3; timeLeft=60; updateHud(); levelEl.textContent=1; livesEl.textContent=3;
     spawn.innerHTML=''; flashToast('Juego reiniciado', 'ok'); randomFact();
   }
   function gameOver(){ running=false; clearInterval(spawnInterval); spawnInterval=null;
+    clearInterval(timerInterval); timerInterval=null;
     flashToast(`Fin del juego – Puntuación: ${score}`, 'bad');
     banner(`🧹 ¡Buen intento! Puntuación: ${score}. Pulsa "Reiniciar" para jugar de nuevo.`);
   }
@@ -331,7 +333,8 @@
       if(ticks++>55) return; requestAnimationFrame(loop);
       ctx.clearRect(0,0,w,h);
       particles.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; p.vy+=.02; p.life--; });
-      particles.forEach(p=>{ ctx.globalAlpha = Math.max(0, p.life/60); ctx.fillRect(p.x, p.y, p.s, p.s); });
+      const colors = ['#22c55e','#fbbf24','#38bdf8','#f472b6','#a78bfa'];
+    particles.forEach((p,i)=>{ ctx.globalAlpha = Math.max(0, p.life/60); ctx.fillStyle = colors[i % colors.length]; ctx.fillRect(p.x, p.y, p.s, p.s); });
     })();
   }
 

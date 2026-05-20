@@ -150,13 +150,18 @@ preguntas.forEach(p => {
 });
 const letras = document.querySelectorAll(".letra");
 
+function letraActual() {
+  return [...letras].find(l => l.textContent === preguntas[indice].letra);
+}
+
 function mostrarPregunta() {
   if (indice >= preguntas.length) {
     finalizar();
     return;
   }
   letras.forEach(l => l.classList.remove("activa"));
-  letras[indice].classList.add("activa");
+  const div = letraActual();
+  if (div) div.classList.add("activa");
   pregunta.textContent = preguntas[indice].texto;
   respuesta.value = "";
   respuesta.focus();
@@ -165,11 +170,12 @@ function mostrarPregunta() {
 function comprobar() {
   const r = respuesta.value.trim().toLowerCase();
   const correcta = preguntas[indice].respuesta.toLowerCase();
+  const div = letraActual();
   if (r === correcta) {
-    letras[indice].classList.add("correcta");
+    if (div) div.classList.add("correcta");
     aciertos++;
   } else {
-    letras[indice].classList.add("incorrecta");
+    if (div) div.classList.add("incorrecta");
     fallos++;
   }
   siguiente();
