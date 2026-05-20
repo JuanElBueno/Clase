@@ -258,7 +258,7 @@
   function checkDrop(cat, accept, el){
     if(!running) return;
     if(cat === accept){
-      score += 10 + level; timeLeft += 2; pulse(el, true); remove(el);
+      score += 10 + level; timeLeft += 2; pulse(el, true);
       flashToast('¡Correcto! +10 pts, +2s', 'ok');
       randomFact();
       confetti();

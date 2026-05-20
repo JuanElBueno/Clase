@@ -347,7 +347,7 @@ let indice = 0,
     preguntasJuego = [],
     tiempoRestante = 30,
     timer;
-let poderes = JSON.parse(localStorage.getItem("poderes")) || {};
+let poderes; try { poderes = JSON.parse(localStorage.getItem("poderes")) || {}; } catch(e) { poderes = {}; }
 
 // --- Elementos DOM ---
 const menu = document.getElementById("menu");
