@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memoria - Residuos y Medioambiente</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  font-family: Arial, sans-serif;
+  background: radial-gradient(circle at center, #002f4b, #000);
+  color: white;
+  text-align: center;
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+h1 { color: gold; margin-bottom: 5px; font-size: 1.8em; }
+#hud {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+  font-size: 16px;
+}
+.stat { background: rgba(0,0,0,0.6); border: 1px solid gold; border-radius: 10px; padding: 6px 16px; }
+.stat span { color: gold; font-weight: bold; }
+
+button {
+  background: gold;
+  color: black;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 15px;
+  margin: 5px;
+  transition: 0.3s;
+}
+button:hover { background: #ffdb58; transform: scale(1.05); }
+
+/* Tablero */
+#tablero {
+  display: grid;
+  gap: 10px;
+  margin: 10px auto;
+  max-width: 700px;
+}
+
+/* Carta */
+.carta {
+  perspective: 600px;
+  cursor: pointer;
+  width: 100%;
+  padding-top: 100%;
+  position: relative;
+}
+.carta-inner {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transition: transform 0.4s ease;
+  border-radius: 12px;
+}
+.carta.volteada .carta-inner,
+.carta.emparejada .carta-inner {
+  transform: rotateY(180deg);
+}
+.cara {
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backface-visibility: hidden;
+  padding: 6px;
+  font-size: 13px;
+  line-height: 1.3;
+}
+.cara-atras {
+  background: linear-gradient(135deg, #0a3069, #001f45);
+  border: 2px solid #1a4a8a;
+  font-size: 28px;
+}
+.cara-frente {
+  transform: rotateY(180deg);
+  font-weight: bold;
+}
+.cara-frente.tipo-concepto {
+  background: linear-gradient(135deg, #1a5276, #0a3069);
+  border: 2px solid gold;
+  color: gold;
+  font-size: 14px;
+}
+.cara-frente.tipo-definicion {
+  background: linear-gradient(135deg, #1a3a1a, #0a2010);
+  border: 2px solid #4caf50;
+  color: #a5d6a7;
+  font-size: 12px;
+}
+.carta.emparejada .cara-frente {
+  background: linear-gradient(135deg, #2e7d32, #1b5e20) !important;
+  border-color: #81c784 !important;
+}
+.carta.error .carta-inner {
+  animation: shake 0.4s ease;
+}
+@keyframes shake {
+  0%,100% { transform: rotateY(180deg) translateX(0); }
+  25% { transform: rotateY(180deg) translateX(-5px); }
+  75% { transform: rotateY(180deg) translateX(5px); }
+}
+
+#mensaje-final {
+  display: none;
+  background: rgba(0,0,0,0.85);
+  border: 3px solid gold;
+  border-radius: 16px;
+  padding: 24px;
+  margin: 10px auto;
+  max-width: 400px;
+  font-size: 18px;
+}
+#mensaje-final h2 { color: gold; }
+
+footer {
+  color: gold;
+  font-size: 14px;
+  margin-top: 15px;
+  text-shadow: 0 0 5px gold;
+}
+</style>
+</head>
+<body>
+<h1>🧠 Memoria - Empareja concepto y definición</h1>
+
+<div id="hud">
+  <div class="stat">Pesetas: <span id="dineroEl">0</span> ₧</div>
+  <div class="stat">Intentos: <span id="intentosEl">0</span></div>
+  <div class="stat">Parejas: <span id="parejasEl">0</span> / <span id="totalEl">0</span></div>
+  <div class="stat">Nivel: <span id="nivelEl">1</span></div>
+</div>
+
+<div id="tablero"></div>
+<div id="mensaje-final">
+  <h2 id="mf-titulo"></h2>
+  <p id="mf-cuerpo"></p>
+  <button id="btnSiguienteNivel">Siguiente nivel ➡️</button>
+  <button onclick="reiniciar()">🔁 Reiniciar</button>
+</div>
+
+<button onclick="volverInicio()" style="margin-top:10px">⬅️ Volver al inicio</button>
+<footer>© 2025 | Juego educativo hecho por Juan El Bueno</footer>
+
+<script>
+const PARES = [
+  { concepto: "Reciclar",        definicion: "Transformar materiales usados en productos nuevos" },
+  { concepto: "Vertedero",       definicion: "Lugar de disposición final segura y monitorizada" },
+  { concepto: "Compostaje",      definicion: "Proceso que convierte residuos orgánicos en abono" },
+  { concepto: "Biogás",          definicion: "Gas producido por digestión anaerobia de orgánicos" },
+  { concepto: "Incineración",    definicion: "Tratamiento térmico de residuos, última opción" },
+  { concepto: "Economía circular", definicion: "Mantener el valor de los productos el mayor tiempo posible" },
+  { concepto: "Residuo peligroso", definicion: "Requiere contenedores especiales de almacenamiento" },
+  { concepto: "Punto limpio",    definicion: "Lugar para depositar residuos voluminosos y peligrosos" },
+  { concepto: "TMB",             definicion: "Planta que combina procesos mecánicos y biológicos" },
+  { concepto: "Metano",          definicion: "Gas emitido por residuos orgánicos en vertederos" },
+  { concepto: "Ergonomía",       definicion: "Previene lesiones musculoesqueléticas en el trabajo" },
+  { concepto: "Extintor CO₂",    definicion: "Se usa en incendios de tipo C (eléctricos)" },
+  { concepto: "EPI",             definicion: "Equipo de Protección Individual del trabajador" },
+  { concepto: "Amianto",         definicion: "Residuo de construcción cancerígeno y peligroso" },
+  { concepto: "Ecodiseño",       definicion: "Reduce el impacto ambiental durante el ciclo de vida" },
+  { concepto: "RCD",             definicion: "Residuos de construcción, reforma o demolición" },
+  { concepto: "Valorización",    definicion: "Obtener nuevos productos a partir de residuos RCD" },
+  { concepto: "3R",              definicion: "Reducir, Reutilizar y Reciclar" },
+  { concepto: "Señal de prohibición", definicion: "Indica acciones o comportamientos no permitidos" },
+  { concepto: "Digestión anaerobia", definicion: "Produce biogás en plantas de biometanización" },
+];
+
+// Pares por nivel
+const PARES_POR_NIVEL = [4, 6, 8, 10];
+const GANANCIA_PAR   = 80;
+const PENALIZACION   = 20;
+
+let dinero   = parseInt(localStorage.getItem("pesetas")) || 0;
+let nivel    = 1;
+let intentos = 0;
+let parejasEncontradas = 0;
+let cartasVolteadas = [];
+let bloqueado = false;
+let paresDeNivel = [];
+
+const tableroEl  = document.getElementById("tablero");
+const dineroEl   = document.getElementById("dineroEl");
+const intentosEl = document.getElementById("intentosEl");
+const parejasEl  = document.getElementById("parejasEl");
+const totalEl    = document.getElementById("totalEl");
+const nivelEl    = document.getElementById("nivelEl");
+const msgFinal   = document.getElementById("mensaje-final");
+
+function actualizarHUD() {
+  dineroEl.textContent   = dinero;
+  intentosEl.textContent = intentos;
+  parejasEl.textContent  = parejasEncontradas;
+  nivelEl.textContent    = nivel;
+  localStorage.setItem("pesetas", dinero);
+}
+
+function mezclar(arr) {
+  return [...arr].sort(() => Math.random() - 0.5);
+}
+
+function iniciarNivel() {
+  msgFinal.style.display = "none";
+  intentos = 0;
+  parejasEncontradas = 0;
+  cartasVolteadas = [];
+  bloqueado = false;
+
+  const numPares = PARES_POR_NIVEL[Math.min(nivel - 1, PARES_POR_NIVEL.length - 1)];
+  totalEl.textContent = numPares;
+  paresDeNivel = mezclar(PARES).slice(0, numPares);
+
+  // Columnas según pares
+  const cols = numPares <= 4 ? 4 : numPares <= 6 ? 4 : numPares <= 8 ? 4 : 5;
+  tableroEl.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  tableroEl.style.width = `${cols * 110 + (cols - 1) * 10}px`;
+
+  // Crear cartas: concepto + definicion intercalados y mezclados
+  const fichas = [];
+  paresDeNivel.forEach((par, i) => {
+    fichas.push({ id: i, texto: par.concepto,    tipo: "concepto" });
+    fichas.push({ id: i, texto: par.definicion,  tipo: "definicion" });
+  });
+
+  tableroEl.innerHTML = "";
+  mezclar(fichas).forEach(ficha => {
+    const carta = document.createElement("div");
+    carta.className = "carta";
+    carta.dataset.id   = ficha.id;
+    carta.dataset.tipo = ficha.tipo;
+    carta.innerHTML = `
+      <div class="carta-inner">
+        <div class="cara cara-atras">🃏</div>
+        <div class="cara cara-frente tipo-${ficha.tipo}">${ficha.texto}</div>
+      </div>`;
+    carta.addEventListener("click", () => voltearCarta(carta));
+    tableroEl.appendChild(carta);
+  });
+
+  actualizarHUD();
+}
+
+function voltearCarta(carta) {
+  if (bloqueado) return;
+  if (carta.classList.contains("volteada") || carta.classList.contains("emparejada")) return;
+  if (cartasVolteadas.length >= 2) return;
+
+  carta.classList.add("volteada");
+  cartasVolteadas.push(carta);
+
+  if (cartasVolteadas.length === 2) {
+    intentos++;
+    actualizarHUD();
+    bloqueado = true;
+    setTimeout(comprobarPar, 700);
+  }
+}
+
+function comprobarPar() {
+  const [c1, c2] = cartasVolteadas;
+  const mismoId   = c1.dataset.id === c2.dataset.id;
+  const diferenteTipo = c1.dataset.tipo !== c2.dataset.tipo;
+
+  if (mismoId && diferenteTipo) {
+    c1.classList.add("emparejada");
+    c2.classList.add("emparejada");
+    c1.classList.remove("volteada");
+    c2.classList.remove("volteada");
+    dinero += GANANCIA_PAR;
+    parejasEncontradas++;
+    actualizarHUD();
+    if (parejasEncontradas === paresDeNivel.length) {
+      setTimeout(mostrarFinNivel, 400);
+    }
+  } else {
+    c1.classList.add("error");
+    c2.classList.add("error");
+    dinero = Math.max(0, dinero - PENALIZACION);
+    actualizarHUD();
+    setTimeout(() => {
+      c1.classList.remove("volteada", "error");
+      c2.classList.remove("volteada", "error");
+      bloqueado = false;
+    }, 600);
+  }
+
+  cartasVolteadas = [];
+  if (mismoId && diferenteTipo) bloqueado = false;
+}
+
+function mostrarFinNivel() {
+  const eficiencia = Math.round((paresDeNivel.length / intentos) * 100);
+  document.getElementById("mf-titulo").textContent = `🏆 Nivel ${nivel} completado`;
+  document.getElementById("mf-cuerpo").textContent =
+    `${intentos} intentos | Eficiencia: ${eficiencia}% | Pesetas: ${dinero} ₧`;
+  msgFinal.style.display = "block";
+}
+
+function reiniciar() {
+  nivel = 1;
+  dinero = parseInt(localStorage.getItem("pesetas")) || dinero;
+  iniciarNivel();
+}
+
+document.getElementById("btnSiguienteNivel").onclick = () => {
+  nivel++;
+  iniciarNivel();
+};
+
+function volverInicio() {
+  window.location.href = "index.html";
+}
+
+iniciarNivel();
+</script>
+</body>
+</html>

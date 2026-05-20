@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ahorcado - Residuos y Medioambiente</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: radial-gradient(circle at center, #002f4b, #000);
+  color: white;
+  text-align: center;
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.contenedor {
+  width: 90%;
+  max-width: 800px;
+  background: rgba(0,0,0,0.85);
+  border: 3px solid gold;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 0 20px gold;
+}
+h1 { color: gold; margin-bottom: 5px; }
+#marcador { font-size: 18px; color: lightgreen; margin-bottom: 10px; }
+button {
+  background: gold;
+  color: black;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 16px;
+  margin: 5px;
+  transition: 0.3s;
+}
+button:hover { background: #ffdb58; transform: scale(1.05); }
+button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+/* Horca SVG */
+#horca { margin: 10px auto; display: block; }
+
+/* Palabra */
+#palabra {
+  font-size: 2em;
+  letter-spacing: 10px;
+  margin: 15px 0;
+  color: gold;
+  min-height: 50px;
+}
+
+/* Pista */
+#pista {
+  font-size: 14px;
+  color: #aaa;
+  margin-bottom: 10px;
+  min-height: 20px;
+}
+
+/* Letras usadas */
+#letras-usadas {
+  font-size: 14px;
+  color: #f88;
+  margin-bottom: 10px;
+  min-height: 20px;
+}
+
+/* Teclado */
+#teclado {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 10px 0;
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.tecla {
+  background: #0a3069;
+  color: white;
+  border: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.tecla:hover:not(:disabled) { background: #123d85; }
+.tecla:disabled { opacity: 0.3; cursor: not-allowed; }
+.tecla.correcta { background: #2e7d32; }
+.tecla.incorrecta { background: #b71c1c; }
+
+#mensaje {
+  font-size: 20px;
+  font-weight: bold;
+  min-height: 30px;
+  margin: 8px 0;
+}
+footer {
+  color: gold;
+  font-size: 14px;
+  margin-top: 15px;
+  text-shadow: 0 0 5px gold;
+}
+</style>
+</head>
+<body>
+<div class="contenedor">
+  <h1>🪢 Ahorcado - Residuos y Medioambiente</h1>
+  <div id="marcador">Pesetas: 0 ₧</div>
+
+  <svg id="horca" width="160" height="180" viewBox="0 0 160 180">
+    <!-- Base y estructura -->
+    <line x1="10" y1="175" x2="150" y2="175" stroke="gold" stroke-width="4"/>
+    <line x1="40" y1="175" x2="40" y2="10" stroke="gold" stroke-width="4"/>
+    <line x1="40" y1="10" x2="100" y2="10" stroke="gold" stroke-width="4"/>
+    <line x1="100" y1="10" x2="100" y2="30" stroke="gold" stroke-width="4"/>
+    <!-- Partes del cuerpo (ocultas inicialmente) -->
+    <circle id="p0" cx="100" cy="45" r="15" stroke="white" stroke-width="3" fill="none" visibility="hidden"/>
+    <line  id="p1" x1="100" y1="60" x2="100" y2="110" stroke="white" stroke-width="3" visibility="hidden"/>
+    <line  id="p2" x1="100" y1="75" x2="75"  y2="95"  stroke="white" stroke-width="3" visibility="hidden"/>
+    <line  id="p3" x1="100" y1="75" x2="125" y2="95"  stroke="white" stroke-width="3" visibility="hidden"/>
+    <line  id="p4" x1="100" y1="110" x2="75" y2="140" stroke="white" stroke-width="3" visibility="hidden"/>
+    <line  id="p5" x1="100" y1="110" x2="125" y2="140" stroke="white" stroke-width="3" visibility="hidden"/>
+  </svg>
+
+  <div id="pista"></div>
+  <div id="palabra"></div>
+  <div id="letras-usadas"></div>
+  <div id="mensaje"></div>
+  <div id="teclado"></div>
+  <br>
+  <button id="btnSiguiente" style="display:none">Siguiente ➡️</button>
+  <button onclick="volverInicio()">⬅️ Volver al inicio</button>
+</div>
+<footer>© 2025 | Juego educativo hecho por Juan El Bueno</footer>
+
+<script>
+const palabras = [
+  { palabra: "RECICLAR",      pista: "Transformar materiales usados en nuevos productos" },
+  { palabra: "VERTEDERO",     pista: "Lugar donde se depositan residuos de forma controlada" },
+  { palabra: "COMPOST",       pista: "Abono natural obtenido de la descomposición orgánica" },
+  { palabra: "BIOGÁS",        pista: "Gas producido por digestión anaerobia de residuos orgánicos" },
+  { palabra: "RECICLAJE",     pista: "Proceso de recuperación de materiales para reutilizarlos" },
+  { palabra: "INCINERACIÓN",  pista: "Tratamiento térmico de residuos como último recurso" },
+  { palabra: "ORGÁNICO",      pista: "Tipo de residuo biodegradable como restos de comida" },
+  { palabra: "CONTENEDOR",    pista: "Recipiente para depositar residuos clasificados" },
+  { palabra: "PELIGROSO",     pista: "Tipo de residuo que requiere almacenamiento especial" },
+  { palabra: "ECONOMÍA",      pista: "Tipo circular que busca mantener el valor de los productos" },
+  { palabra: "METANO",        pista: "Gas emitido por residuos orgánicos en vertederos" },
+  { palabra: "PLÁSTICO",      pista: "Material que va al contenedor amarillo" },
+  { palabra: "COMPOSTAJE",    pista: "Proceso que transforma residuos orgánicos en abono" },
+  { palabra: "AMIANTO",       pista: "Material de construcción peligroso y cancerígeno" },
+  { palabra: "ERGONOMÍA",     pista: "Disciplina que previene lesiones musculoesqueléticas" },
+  { palabra: "EXTINTOR",      pista: "Equipo usado para apagar incendios" },
+  { palabra: "SEÑALIZACIÓN",  pista: "Sistema visual que informa sobre riesgos en el trabajo" },
+  { palabra: "INFLAMABLE",    pista: "Sustancia que puede arder fácilmente" },
+  { palabra: "DEMOLICIÓN",    pista: "Actividad que genera residuos de construcción (RCD)" },
+  { palabra: "SEPARACIÓN",    pista: "Acción de clasificar residuos según su tipo" },
+  { palabra: "RESIDUO",       pista: "Material que pierde utilidad tras usarse" },
+  { palabra: "TOXICO",        pista: "Característica de un residuo dañino para la salud" },
+  { palabra: "GRANULOMETRÍA", pista: "Clasificación de materiales por tamaño de grano (criba)" },
+  { palabra: "VALORIZACIÓN",  pista: "Obtener nuevos productos a partir de residuos RCD" },
+  { palabra: "MASCARILLA",    pista: "EPI que protege contra partículas y gases peligrosos" },
+];
+
+const partes = ["p0","p1","p2","p3","p4","p5"];
+const LETRAS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const GANANCIA_BASE = 150;
+const PENALIZACION = 30;
+
+let dinero = parseInt(localStorage.getItem("pesetas")) || 0;
+let palabraActual = "";
+let pistaActual = "";
+let letrasAdivinadas = new Set();
+let letrasIncorrectas = new Set();
+let pendientes = [];
+let juegoActivo = false;
+
+const marcadorEl = document.getElementById("marcador");
+const palabraEl  = document.getElementById("palabra");
+const pistaEl    = document.getElementById("pista");
+const usadasEl   = document.getElementById("letras-usadas");
+const mensajeEl  = document.getElementById("mensaje");
+const tecladoEl  = document.getElementById("teclado");
+const btnSig     = document.getElementById("btnSiguiente");
+
+function actualizarMarcador() {
+  marcadorEl.textContent = `Pesetas: ${dinero} ₧`;
+  localStorage.setItem("pesetas", dinero);
+}
+
+function construirTeclado() {
+  tecladoEl.innerHTML = "";
+  for (const letra of LETRAS) {
+    const btn = document.createElement("button");
+    btn.textContent = letra;
+    btn.className = "tecla";
+    btn.dataset.letra = letra;
+    btn.onclick = () => pulsarLetra(letra);
+    tecladoEl.appendChild(btn);
+  }
+}
+
+function mostrarPalabra() {
+  palabraEl.textContent = [...palabraActual]
+    .map(c => (c === " " ? "  " : letrasAdivinadas.has(c) ? c : "_"))
+    .join(" ");
+}
+
+function mostrarHorca() {
+  partes.forEach((id, i) => {
+    document.getElementById(id).setAttribute("visibility",
+      i < letrasIncorrectas.size ? "visible" : "hidden");
+  });
+}
+
+function nuevaPalabra() {
+  if (pendientes.length === 0) pendientes = [...palabras].sort(() => Math.random() - 0.5);
+  const entrada = pendientes.pop();
+  palabraActual = entrada.palabra.toUpperCase();
+  pistaActual   = entrada.pista;
+  letrasAdivinadas  = new Set();
+  letrasIncorrectas = new Set();
+  juegoActivo = true;
+
+  pistaEl.textContent  = `Pista: ${pistaActual}`;
+  usadasEl.textContent = "";
+  mensajeEl.textContent = "";
+  btnSig.style.display = "none";
+
+  construirTeclado();
+  mostrarPalabra();
+  mostrarHorca();
+}
+
+function pulsarLetra(letra) {
+  if (!juegoActivo) return;
+  const tecla = tecladoEl.querySelector(`[data-letra="${letra}"]`);
+  if (!tecla || tecla.disabled) return;
+  tecla.disabled = true;
+
+  // Letras con tilde contadas como la misma base
+  const equivalentes = { "A":"AÁ","E":"EÉ","I":"IÍ","O":"OÓ","U":"UÚ" };
+  const grupo = Object.values(equivalentes).find(g => g.includes(letra)) || letra;
+  const acierto = [...palabraActual].some(c => grupo.includes(c));
+
+  if (acierto) {
+    tecla.classList.add("correcta");
+    for (const c of grupo) letrasAdivinadas.add(c);
+    mostrarPalabra();
+    if (palabraGanada()) finRonda(true);
+  } else {
+    tecla.classList.add("incorrecta");
+    letrasIncorrectas.add(letra);
+    mostrarHorca();
+    usadasEl.textContent = "Incorrectas: " + [...letrasIncorrectas].join(" ");
+    if (letrasIncorrectas.size >= partes.length) finRonda(false);
+  }
+}
+
+function palabraGanada() {
+  return [...palabraActual].every(c => c === " " || letrasAdivinadas.has(c));
+}
+
+function finRonda(ganado) {
+  juegoActivo = false;
+  // Deshabilitar todo el teclado
+  tecladoEl.querySelectorAll(".tecla").forEach(b => b.disabled = true);
+
+  if (ganado) {
+    const bonus = Math.max(0, GANANCIA_BASE - letrasIncorrectas.size * PENALIZACION);
+    dinero += bonus;
+    mensajeEl.innerHTML = `✅ ¡Correcto! +${bonus} ₧`;
+    mensajeEl.style.color = "lightgreen";
+  } else {
+    dinero = Math.max(0, dinero - PENALIZACION);
+    // Revelar la palabra
+    palabraEl.textContent = palabraActual.split("").join(" ");
+    mensajeEl.innerHTML = `❌ Era: <strong>${palabraActual}</strong>  -${PENALIZACION} ₧`;
+    mensajeEl.style.color = "#f88";
+  }
+
+  actualizarMarcador();
+  btnSig.style.display = "inline-block";
+}
+
+function volverInicio() {
+  window.location.href = "index.html";
+}
+
+btnSig.onclick = () => nuevaPalabra();
+
+// Soporte teclado físico
+document.addEventListener("keydown", e => {
+  const l = e.key.toUpperCase();
+  if (LETRAS.includes(l)) pulsarLetra(l);
+});
+
+// Iniciar
+actualizarMarcador();
+nuevaPalabra();
+</script>
+</body>
+</html>

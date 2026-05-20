@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crucigrama - Residuos y Medioambiente</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  font-family: Arial, sans-serif;
+  background: radial-gradient(circle at center, #002f4b, #000);
+  color: white;
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+}
+h1 { color: gold; margin-bottom: 6px; font-size: 1.7em; text-align: center; }
+#hud {
+  display: flex; gap: 14px; flex-wrap: wrap;
+  justify-content: center; margin-bottom: 12px; font-size: 15px;
+}
+.stat { background: rgba(0,0,0,0.6); border: 1px solid gold; border-radius: 10px; padding: 5px 14px; }
+.stat span { color: gold; font-weight: bold; }
+
+/* Layout principal */
+#layout {
+  display: flex; gap: 20px; flex-wrap: wrap;
+  justify-content: center; width: 100%; max-width: 900px;
+}
+
+/* Grid */
+#grid-wrap { overflow-x: auto; }
+#grid {
+  display: grid;
+  border: 1px solid #333;
+  width: max-content;
+}
+.celda {
+  width: 36px; height: 36px;
+  background: #111;
+  border: 1px solid #333;
+  position: relative;
+}
+.celda.blanca { background: #1a2a3a; }
+.celda.activa { background: #0a3069; }
+.celda.correcta { background: #1b5e20 !important; }
+.celda.error-anim { animation: parpadeo 0.4s ease; }
+@keyframes parpadeo {
+  0%,100% { background: #1a2a3a; }
+  50%      { background: #7f1d1d; }
+}
+.celda input {
+  width: 100%; height: 100%;
+  background: transparent;
+  border: none; outline: none;
+  color: white;
+  font-size: 16px; font-weight: bold;
+  text-align: center; text-transform: uppercase;
+  cursor: pointer; caret-color: transparent;
+  padding: 0;
+}
+.celda input:focus { background: rgba(255,215,0,0.15); }
+.num {
+  position: absolute; top: 1px; left: 2px;
+  font-size: 9px; color: #aaa; pointer-events: none;
+  line-height: 1;
+}
+
+/* Pistas */
+#pistas {
+  max-width: 320px; min-width: 240px;
+  background: rgba(0,0,0,0.6); border: 1px solid #1a3a5a;
+  border-radius: 12px; padding: 12px; font-size: 13px;
+  max-height: 500px; overflow-y: auto;
+}
+#pistas h3 { color: gold; margin: 0 0 8px; font-size: 14px; }
+.pista-grupo { margin-bottom: 10px; }
+.pista-grupo h4 { color: #aaa; margin: 0 0 4px; font-size: 12px; text-transform: uppercase; }
+.pista-item {
+  padding: 4px 6px; border-radius: 6px; cursor: pointer;
+  margin-bottom: 3px; border-left: 3px solid transparent;
+  transition: 0.2s;
+}
+.pista-item:hover { background: rgba(255,255,255,0.07); }
+.pista-item.activa { border-left-color: gold; background: rgba(255,215,0,0.08); }
+.pista-item.resuelta { color: #4caf50; text-decoration: line-through; }
+
+button {
+  background: gold; color: black; border: none;
+  padding: 9px 20px; border-radius: 10px; cursor: pointer;
+  font-weight: bold; font-size: 14px; margin: 4px;
+  transition: 0.3s;
+}
+button:hover { background: #ffdb58; transform: scale(1.05); }
+
+#controles { margin-top: 12px; text-align: center; }
+
+#mensaje {
+  margin-top: 10px; font-size: 18px; font-weight: bold;
+  min-height: 28px; text-align: center;
+}
+
+footer { color: gold; font-size: 13px; margin-top: 14px; text-shadow: 0 0 5px gold; }
+</style>
+</head>
+<body>
+<h1>✏️ Crucigrama - Residuos y Medioambiente</h1>
+
+<div id="hud">
+  <div class="stat">Pesetas: <span id="dineroEl">0</span> ₧</div>
+  <div class="stat">Resueltas: <span id="resueltasEl">0</span> / <span id="totalEl">0</span></div>
+</div>
+
+<div id="layout">
+  <div id="grid-wrap"><div id="grid"></div></div>
+  <div id="pistas">
+    <h3>📋 Pistas</h3>
+    <div class="pista-grupo">
+      <h4>➡️ Horizontal</h4>
+      <div id="pistas-h"></div>
+    </div>
+    <div class="pista-grupo">
+      <h4>⬇️ Vertical</h4>
+      <div id="pistas-v"></div>
+    </div>
+  </div>
+</div>
+
+<div id="controles">
+  <button onclick="comprobarTodo()">✅ Comprobar todo</button>
+  <button onclick="pista()">💡 Pista (-30₧)</button>
+  <button onclick="reiniciar()">🔁 Reiniciar</button>
+  <button onclick="volverInicio()">⬅️ Volver al inicio</button>
+</div>
+<div id="mensaje"></div>
+<footer>© 2025 | Juego educativo hecho por Juan El Bueno</footer>
+
+<script>
+/*
+  Crucigrama fijo 13×13
+  Palabras colocadas manualmente con sus coordenadas:
+  { palabra, fila, col, dir:"H"|"V", pista, num }
+*/
+const PALABRAS = [
+  // Horizontal
+  { num:1,  dir:"H", fila:0,  col:0,  palabra:"RECICLAR",     pista:"Transformar materiales usados en nuevos productos" },
+  { num:4,  dir:"H", fila:2,  col:1,  palabra:"COMPOST",      pista:"Abono natural obtenido de la descomposición orgánica" },
+  { num:6,  dir:"H", fila:4,  col:0,  palabra:"VERTEDERO",    pista:"Lugar de disposición final de residuos" },
+  { num:8,  dir:"H", fila:6,  col:2,  palabra:"METANO",       pista:"Gas emitido por residuos orgánicos en vertederos" },
+  { num:10, dir:"H", fila:8,  col:0,  palabra:"ERGONOMIA",    pista:"Disciplina que previene lesiones musculoesqueléticas" },
+  { num:12, dir:"H", fila:10, col:1,  palabra:"AMIANTO",      pista:"Material de construcción cancerígeno (RCD peligroso)" },
+  { num:14, dir:"H", fila:12, col:0,  palabra:"SEPARACION",   pista:"Clasificar residuos según su tipo" },
+  // Vertical
+  { num:1,  dir:"V", fila:0,  col:0,  palabra:"RESIDUO",      pista:"Material que pierde utilidad tras usarse" },
+  { num:2,  dir:"V", fila:0,  col:4,  palabra:"COMPOSTAJE",   pista:"Proceso que transforma orgánicos en abono" },
+  { num:3,  dir:"V", fila:0,  col:7,  palabra:"RAEE",         pista:"Residuos de aparatos eléctricos y electrónicos" },
+  { num:5,  dir:"V", fila:2,  col:1,  palabra:"CONTENEDOR",   pista:"Recipiente para depositar residuos clasificados" },
+  { num:7,  dir:"V", fila:4,  col:6,  palabra:"ECODISENO",    pista:"Diseño que reduce impacto ambiental del producto" },
+  { num:9,  dir:"V", fila:6,  col:2,  palabra:"METALES",      pista:"Materiales como latas que van al amarillo" },
+  { num:11, dir:"V", fila:8,  col:8,  palabra:"ORGANICO",     pista:"Tipo de residuo biodegradable como restos de comida" },
+  { num:13, dir:"V", fila:10, col:4,  palabra:"TOXICA",       pista:"Característica de sustancia dañina para la salud" },
+];
+
+const FILAS = 13;
+const COLS  = 13;
+const GANANCIA_PALABRA = 60;
+const COSTE_PISTA      = 30;
+
+let dinero = parseInt(localStorage.getItem("pesetas")) || 0;
+let grid = []; // grid[f][c] = { letra, input, palabrasRefs }
+let palabraActiva = null;
+let resueltasCount = 0;
+
+const gridEl     = document.getElementById("grid");
+const dineroEl   = document.getElementById("dineroEl");
+const resueltasEl= document.getElementById("resueltasEl");
+const totalEl    = document.getElementById("totalEl");
+const mensajeEl  = document.getElementById("mensaje");
+
+// ---- Construir grid vacío ----
+function construirGrid() {
+  gridEl.style.gridTemplateColumns = `repeat(${COLS}, 36px)`;
+  gridEl.innerHTML = "";
+  grid = [];
+
+  for (let f = 0; f < FILAS; f++) {
+    grid[f] = [];
+    for (let c = 0; c < COLS; c++) {
+      const celda = document.createElement("div");
+      celda.className = "celda";
+      celda.dataset.f = f; celda.dataset.c = c;
+      const inp = document.createElement("input");
+      inp.maxLength = 1;
+      inp.setAttribute("autocomplete","off");
+      celda.appendChild(inp);
+      gridEl.appendChild(celda);
+      grid[f][c] = { celda, inp, letra: null, palabrasRefs: [] };
+    }
+  }
+}
+
+// ---- Colocar palabras y marcar celdas blancas ----
+function colocarPalabras() {
+  PALABRAS.forEach(pw => {
+    for (let i = 0; i < pw.palabra.length; i++) {
+      const f = pw.dir === "H" ? pw.fila : pw.fila + i;
+      const c = pw.dir === "H" ? pw.col  + i : pw.col;
+      if (f >= FILAS || c >= COLS) return;
+      const celda = grid[f][c];
+      celda.letra = pw.palabra[i];
+      celda.celda.classList.add("blanca");
+      celda.palabrasRefs.push(pw);
+    }
+  });
+}
+
+// ---- Números en celdas ----
+function numerarCeldas() {
+  const primeras = new Map();
+  PALABRAS.forEach(pw => {
+    const key = `${pw.fila},${pw.col}`;
+    if (!primeras.has(key)) primeras.set(key, pw.num);
+  });
+  primeras.forEach((num, key) => {
+    const [f, c] = key.split(",").map(Number);
+    const span = document.createElement("span");
+    span.className = "num"; span.textContent = num;
+    grid[f][c].celda.appendChild(span);
+  });
+}
+
+// ---- Eventos de input ----
+function registrarEventos() {
+  for (let f = 0; f < FILAS; f++) {
+    for (let c = 0; c < COLS; c++) {
+      const cell = grid[f][c];
+      if (!cell.letra) { cell.inp.disabled = true; continue; }
+
+      cell.inp.addEventListener("focus", () => {
+        // Si ya hay una palabra activa con esta celda, mantener dirección
+        if (palabraActiva && cell.palabrasRefs.includes(palabraActiva)) {
+          resaltarPalabra(palabraActiva);
+          return;
+        }
+        // Si solo tiene una palabra, seleccionarla
+        if (cell.palabrasRefs.length === 1) {
+          seleccionarPalabra(cell.palabrasRefs[0]);
+        } else {
+          // Dos palabras (cruce): alternar
+          const otra = cell.palabrasRefs.find(p => p !== palabraActiva) || cell.palabrasRefs[0];
+          seleccionarPalabra(otra);
+        }
+      });
+
+      cell.inp.addEventListener("keydown", e => {
+        if (e.key === "Backspace") {
+          if (cell.inp.value === "" && palabraActiva) moverAnterior(f, c);
+          else cell.inp.value = "";
+          e.preventDefault();
+          return;
+        }
+        if (e.key === "ArrowRight" || e.key === "ArrowLeft" ||
+            e.key === "ArrowUp"    || e.key === "ArrowDown") {
+          moverFlecha(f, c, e.key); e.preventDefault(); return;
+        }
+        if (e.key === "Tab") return;
+        if (e.key.length === 1 && /[a-záéíóúñüA-ZÁÉÍÓÚÑÜ]/.test(e.key)) {
+          cell.inp.value = e.key.toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+          if (palabraActiva) moverSiguiente(f, c);
+          e.preventDefault();
+        } else {
+          e.preventDefault();
+        }
+      });
+    }
+  }
+}
+
+function seleccionarPalabra(pw) {
+  palabraActiva = pw;
+  resaltarPalabra(pw);
+  actualizarPistasActivas(pw);
+}
+
+function resaltarPalabra(pw) {
+  // Quitar activa de todas
+  for (let f = 0; f < FILAS; f++)
+    for (let c = 0; c < COLS; c++)
+      grid[f][c].celda.classList.remove("activa");
+  // Marcar la palabra activa
+  for (let i = 0; i < pw.palabra.length; i++) {
+    const f = pw.dir === "H" ? pw.fila : pw.fila + i;
+    const c = pw.dir === "H" ? pw.col + i : pw.col;
+    if (!grid[f][c].celda.classList.contains("correcta"))
+      grid[f][c].celda.classList.add("activa");
+  }
+}
+
+function moverSiguiente(f, c) {
+  if (!palabraActiva) return;
+  if (palabraActiva.dir === "H" && c + 1 < COLS && grid[f][c+1].letra) grid[f][c+1].inp.focus();
+  else if (palabraActiva.dir === "V" && f + 1 < FILAS && grid[f+1][c].letra) grid[f+1][c].inp.focus();
+}
+
+function moverAnterior(f, c) {
+  if (!palabraActiva) return;
+  if (palabraActiva.dir === "H" && c - 1 >= 0 && grid[f][c-1].letra) grid[f][c-1].inp.focus();
+  else if (palabraActiva.dir === "V" && f - 1 >= 0 && grid[f-1][c].letra) grid[f-1][c].inp.focus();
+}
+
+function moverFlecha(f, c, key) {
+  const mv = { ArrowRight:[0,1], ArrowLeft:[0,-1], ArrowUp:[-1,0], ArrowDown:[1,0] };
+  const [df, dc] = mv[key];
+  const nf = f + df, nc = c + dc;
+  if (nf >= 0 && nf < FILAS && nc >= 0 && nc < COLS && grid[nf][nc].letra)
+    grid[nf][nc].inp.focus();
+}
+
+// ---- Pistas laterales ----
+function construirPistas() {
+  const h = PALABRAS.filter(p => p.dir === "H").sort((a,b) => a.num - b.num);
+  const v = PALABRAS.filter(p => p.dir === "V").sort((a,b) => a.num - b.num);
+  totalEl.textContent = PALABRAS.length;
+
+  [["pistas-h", h], ["pistas-v", v]].forEach(([id, lista]) => {
+    const cont = document.getElementById(id);
+    lista.forEach(pw => {
+      const div = document.createElement("div");
+      div.className = "pista-item";
+      div.id = `pista-${pw.dir}-${pw.num}`;
+      div.textContent = `${pw.num}. ${pw.pista}`;
+      div.onclick = () => {
+        seleccionarPalabra(pw);
+        grid[pw.fila][pw.col].inp.focus();
+      };
+      cont.appendChild(div);
+    });
+  });
+}
+
+function actualizarPistasActivas(pw) {
+  document.querySelectorAll(".pista-item").forEach(d => d.classList.remove("activa"));
+  const el = document.getElementById(`pista-${pw.dir}-${pw.num}`);
+  if (el) { el.classList.add("activa"); el.scrollIntoView({ block:"nearest" }); }
+}
+
+// ---- Comprobar ----
+function comprobarPalabra(pw) {
+  let correcta = true;
+  for (let i = 0; i < pw.palabra.length; i++) {
+    const f = pw.dir === "H" ? pw.fila : pw.fila + i;
+    const c = pw.dir === "H" ? pw.col + i : pw.col;
+    const val = grid[f][c].inp.value.toUpperCase();
+    const esperada = pw.palabra[i].toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+    const introducida = val.normalize("NFD").replace(/[̀-ͯ]/g,"");
+    if (introducida !== esperada) { correcta = false; break; }
+  }
+  return correcta;
+}
+
+function marcarPalabraCorrecta(pw) {
+  for (let i = 0; i < pw.palabra.length; i++) {
+    const f = pw.dir === "H" ? pw.fila : pw.fila + i;
+    const c = pw.dir === "H" ? pw.col + i : pw.col;
+    grid[f][c].celda.classList.add("correcta");
+    grid[f][c].celda.classList.remove("activa");
+    grid[f][c].inp.disabled = true;
+    // Rellenar con letra correcta visible
+    grid[f][c].inp.value = pw.palabra[i];
+  }
+  const pistaEl = document.getElementById(`pista-${pw.dir}-${pw.num}`);
+  if (pistaEl) pistaEl.classList.add("resuelta");
+}
+
+function comprobarTodo() {
+  let nuevas = 0;
+  PALABRAS.forEach(pw => {
+    const pistaEl = document.getElementById(`pista-${pw.dir}-${pw.num}`);
+    if (pistaEl && pistaEl.classList.contains("resuelta")) return;
+    if (comprobarPalabra(pw)) {
+      marcarPalabraCorrecta(pw);
+      dinero += GANANCIA_PALABRA;
+      nuevas++;
+      resueltasCount++;
+    } else {
+      // Animación error en celdas incorrectas
+      for (let i = 0; i < pw.palabra.length; i++) {
+        const f = pw.dir === "H" ? pw.fila : pw.fila + i;
+        const c = pw.dir === "H" ? pw.col + i : pw.col;
+        if (grid[f][c].inp.value !== "") {
+          grid[f][c].celda.classList.add("error-anim");
+          setTimeout(() => grid[f][c].celda.classList.remove("error-anim"), 400);
+        }
+      }
+    }
+  });
+
+  actualizarHUD();
+
+  if (nuevas > 0) mensajeEl.textContent = `✅ +${nuevas} palabra(s) correcta(s)! +${nuevas * GANANCIA_PALABRA} ₧`;
+  else mensajeEl.textContent = "❌ Ninguna palabra nueva correcta.";
+
+  if (resueltasCount >= PALABRAS.length) {
+    setTimeout(() => {
+      mensajeEl.textContent = `🏆 ¡Crucigrama completado! Total: ${dinero} ₧`;
+    }, 500);
+  }
+}
+
+function pista() {
+  if (dinero < COSTE_PISTA) { mensajeEl.textContent = "No tienes suficientes pesetas."; return; }
+  if (!palabraActiva) { mensajeEl.textContent = "Selecciona una palabra primero."; return; }
+  const pistaElDiv = document.getElementById(`pista-${palabraActiva.dir}-${palabraActiva.num}`);
+  if (pistaElDiv && pistaElDiv.classList.contains("resuelta")) {
+    mensajeEl.textContent = "Esa palabra ya está resuelta."; return;
+  }
+  // Revelar una letra aleatoria sin rellenar
+  const vacias = [];
+  for (let i = 0; i < palabraActiva.palabra.length; i++) {
+    const f = palabraActiva.dir === "H" ? palabraActiva.fila : palabraActiva.fila + i;
+    const c = palabraActiva.dir === "H" ? palabraActiva.col + i : palabraActiva.col;
+    if (!grid[f][c].inp.disabled && grid[f][c].inp.value === "") vacias.push(i);
+  }
+  if (vacias.length === 0) { mensajeEl.textContent = "Ya has rellenado esa palabra."; return; }
+  const idx = vacias[Math.floor(Math.random() * vacias.length)];
+  const f = palabraActiva.dir === "H" ? palabraActiva.fila : palabraActiva.fila + idx;
+  const c = palabraActiva.dir === "H" ? palabraActiva.col + idx : palabraActiva.col;
+  grid[f][c].inp.value = palabraActiva.palabra[idx];
+  dinero -= COSTE_PISTA;
+  actualizarHUD();
+  mensajeEl.textContent = `💡 Pista revelada. -${COSTE_PISTA} ₧`;
+}
+
+function actualizarHUD() {
+  dineroEl.textContent    = dinero;
+  resueltasEl.textContent = resueltasCount;
+  localStorage.setItem("pesetas", dinero);
+}
+
+function reiniciar() {
+  resueltasCount = 0;
+  palabraActiva  = null;
+  mensajeEl.textContent = "";
+  // Resetear celdas
+  for (let f = 0; f < FILAS; f++)
+    for (let c = 0; c < COLS; c++) {
+      const cell = grid[f][c];
+      if (cell.letra) {
+        cell.inp.value = "";
+        cell.inp.disabled = false;
+        cell.celda.classList.remove("correcta","activa","error-anim");
+      }
+    }
+  document.querySelectorAll(".pista-item").forEach(d => d.classList.remove("resuelta","activa"));
+  actualizarHUD();
+}
+
+function volverInicio() {
+  window.location.href = "index.html";
+}
+
+// ---- Init ----
+construirGrid();
+colocarPalabras();
+numerarCeldas();
+registrarEventos();
+construirPistas();
+actualizarHUD();
+</script>
+</body>
+</html>
